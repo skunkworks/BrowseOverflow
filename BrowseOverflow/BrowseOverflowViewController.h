@@ -15,4 +15,6 @@
 // Strong pointer because it's the delegate and data source for the table view, not this class
 @property (nonatomic, strong) id<UITableViewDataSource, UITableViewDelegate> tableViewDataSource;
 
+- (void)userDidSelectTopicNotification:(NSNotification *)notification;
+
 @end

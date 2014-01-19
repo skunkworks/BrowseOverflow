@@ -10,12 +10,11 @@
 #import <objc/runtime.h>
 #import "BrowseOverflowViewController.h"
 #import "TopicTableDataSource.h"
+#import "QuestionListTableDataSource.h"
 
 @interface BrowseOverflowViewControllerTests : XCTestCase
 {
     BrowseOverflowViewController *viewController;
-    SEL realViewDidAppear, testViewDidAppear;
-    SEL realViewWillDisappear, testViewWillDisappear;
 }
 @end
 
@@ -25,7 +24,7 @@ static const char *notificationKey = "BrowseOverflowViewControllerTestsAssociate
 
 @implementation BrowseOverflowViewController (TestNotificationDelivery)
 
-- (void)userDidSelectTopicNotification: (NSNotification *)note {
+- (void)browseOverflowViewControllerTests_userDidSelectTopicNotification: (NSNotification *)note {
     objc_setAssociatedObject(self, notificationKey, note, OBJC_ASSOCIATION_RETAIN);
 }
 
@@ -50,6 +49,10 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
 
 @implementation BrowseOverflowViewControllerTests
 
+- (BrowseOverflowViewController *)createViewController {
+    return [[BrowseOverflowViewController alloc] init];
+}
+
 - (void)swapInstanceMethodsForClass:(Class)class
                         forSelector:(SEL)selector
                       otherSelector:(SEL)otherSelector
@@ -57,36 +60,6 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     Method method = class_getInstanceMethod(class, selector);
     Method otherMethod = class_getInstanceMethod(class, otherSelector);
     method_exchangeImplementations(method, otherMethod);
-}
-
-// Method swizzling is best done in setup and teardown, since it's the best way to guarantee that the
-// methods get swizzled back to normal (imagine if a test threw an exception and didn't finish running)
-//- (void)setUp
-//{
-//    realViewDidAppear = @selector(viewDidAppear:);
-//    testViewDidAppear = @selector(browseOverflowViewControllerTests_viewDidAppear:);
-//    realViewWillDisappear = @selector(viewWillDisappear:);
-//    testViewWillDisappear = @selector(browseOverflowViewControllerTests_viewWillDisappear:);
-//    [self swapInstanceMethodsForClass:[UIViewController class]
-//                          forSelector:realViewDidAppear
-//                        otherSelector:testViewDidAppear];
-//    [self swapInstanceMethodsForClass:[UIViewController class]
-//                          forSelector:realViewWillDisappear
-//                        otherSelector:testViewWillDisappear];
-//}
-//
-//- (void)tearDown
-//{
-//    [self swapInstanceMethodsForClass:[UIViewController class]
-//                          forSelector:realViewDidAppear
-//                        otherSelector:testViewDidAppear];
-//    [self swapInstanceMethodsForClass:[UIViewController class]
-//                          forSelector:realViewWillDisappear
-//                        otherSelector:testViewWillDisappear];
-//}
-
-- (BrowseOverflowViewController *)createViewController {
-    return [[BrowseOverflowViewController alloc] init];
 }
 
 - (void)testItHasATableViewProperty
@@ -160,70 +133,147 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
 - (void)testViewControllerBeforeViewAppearsDoesNotRespondToNotification
 {
     viewController = [self createViewController];
+    SEL realUserDidSelectTopicNotification = NSSelectorFromString(@"userDidSelectTopicNotification:");
+    SEL testUserDidSelectTopicNotification = @selector(browseOverflowViewControllerTests_userDidSelectTopicNotification:);
+    [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                          forSelector:realUserDidSelectTopicNotification
+                        otherSelector:testUserDidSelectTopicNotification];
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:TopicTableDidSelectTopicNotification
-                                                        object:nil];
-    
-    id receivedNotification = objc_getAssociatedObject(viewController, notificationKey);
-    XCTAssertNil(receivedNotification);
+    @try {
+        [[NSNotificationCenter defaultCenter] postNotificationName:TopicTableDidSelectTopicNotification
+                                                            object:nil];
+        
+        XCTAssertNil(objc_getAssociatedObject(viewController, notificationKey));
+    }
+    @finally {
+        [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                              forSelector:realUserDidSelectTopicNotification
+                            otherSelector:testUserDidSelectTopicNotification];
+    }
 }
 
 - (void)testViewControllerAfterViewAppearsRespondsToNotification
 {
     viewController = [self createViewController];
-    [viewController viewDidAppear:NO];
+    SEL realUserDidSelectTopicNotification = NSSelectorFromString(@"userDidSelectTopicNotification:");
+    SEL testUserDidSelectTopicNotification = @selector(browseOverflowViewControllerTests_userDidSelectTopicNotification:);
+    [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                          forSelector:realUserDidSelectTopicNotification
+                        otherSelector:testUserDidSelectTopicNotification];
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:TopicTableDidSelectTopicNotification
-                                                        object:nil];
-    
-    id receivedNotification = objc_getAssociatedObject(viewController, notificationKey);
-    XCTAssertNotNil(receivedNotification);
+    @try {
+        [viewController viewDidAppear:NO];
+        [[NSNotificationCenter defaultCenter] postNotificationName:TopicTableDidSelectTopicNotification
+                                                            object:nil];
+        
+        XCTAssertNotNil(objc_getAssociatedObject(viewController, notificationKey));
+    }
+    @finally {
+        [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                              forSelector:realUserDidSelectTopicNotification
+                            otherSelector:testUserDidSelectTopicNotification];
+    }
+
 }
 
 - (void)testViewControllerAfterViewDisappearsDoesNotRespondToNotification
 {
     viewController = [self createViewController];
-    [viewController viewDidAppear:NO];
-    [viewController viewWillDisappear:NO];
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:TopicTableDidSelectTopicNotification
-                                                        object:nil];
-    
-    id receivedNotification = objc_getAssociatedObject(viewController, notificationKey);
-    XCTAssertNil(receivedNotification);
+    SEL realUserDidSelectTopicNotification = NSSelectorFromString(@"userDidSelectTopicNotification:");
+    SEL testUserDidSelectTopicNotification = @selector(browseOverflowViewControllerTests_userDidSelectTopicNotification:);
+    [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                          forSelector:realUserDidSelectTopicNotification
+                        otherSelector:testUserDidSelectTopicNotification];
+
+    @try {
+        [viewController viewDidAppear:NO];
+        [viewController viewWillDisappear:NO];
+        [[NSNotificationCenter defaultCenter] postNotificationName:TopicTableDidSelectTopicNotification
+                                                            object:nil];
+        
+        XCTAssertNil(objc_getAssociatedObject(viewController, notificationKey));
+    }
+    @finally {
+        [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                              forSelector:realUserDidSelectTopicNotification
+                            otherSelector:testUserDidSelectTopicNotification];
+    }
 }
 
-// Book sets up a few tests for the expectation that the super implementations of view controller lifecycle methods are
-// invoked (e.g. viewDidAppear and viewWillDisappear). This seems like a dumb thing to test, but I think it's just the
-// book's way of introducing method swizzling.
+// Book sets up a few tests for the expectation that the super implementations of view controller
+// lifecycle methods are invoked (e.g. viewDidAppear and viewWillDisappear). This seems like a dumb
+// thing to test, but I think it's just the book's way of introducing method swizzling.
 
 - (void)testViewDidAppearWhenCalledCallsSuperImplementation
 {
     viewController = [self createViewController];
-    realViewDidAppear = @selector(viewDidAppear:);
-    testViewDidAppear = @selector(browseOverflowViewControllerTests_viewDidAppear:);
+    SEL realViewDidAppear = @selector(viewDidAppear:);
+    SEL testViewDidAppear = @selector(browseOverflowViewControllerTests_viewDidAppear:);
     [self swapInstanceMethodsForClass:[UIViewController class]
                           forSelector:realViewDidAppear
                         otherSelector:testViewDidAppear];
     
-    [viewController viewDidAppear:NO];
-    
-    id animatedParameter = objc_getAssociatedObject(viewController, viewDidAppearKey);
-    XCTAssertNotNil(animatedParameter);
-    [self swapInstanceMethodsForClass:[UIViewController class]
-                          forSelector:realViewWillDisappear
-                        otherSelector:testViewWillDisappear];
-
+    // We could do all swizzling in setUp and tearDown, but we don't want to swizzle for every
+    // test, and any thrown exception would skip the swizzling back.
+    @try {
+        [viewController viewDidAppear:NO];
+        
+        XCTAssertNotNil(objc_getAssociatedObject(viewController, viewDidAppearKey));
+    }
+    @finally {
+        [self swapInstanceMethodsForClass:[UIViewController class]
+                              forSelector:realViewDidAppear
+                            otherSelector:testViewDidAppear];
+    }
 }
 
 - (void)testViewWillDisappearWhenCalledCallsSuperImplementation
 {
     viewController = [self createViewController];
+    SEL realViewWillDisappear = @selector(viewWillDisappear:);
+    SEL testViewWillDisappear = @selector(browseOverflowViewControllerTests_viewWillDisappear:);
+    [self swapInstanceMethodsForClass:[UIViewController class]
+                          forSelector:realViewWillDisappear
+                        otherSelector:testViewWillDisappear];
     
-    [viewController viewWillDisappear:NO];
+    @try {
+        [viewController viewWillDisappear:NO];
+        
+        XCTAssertNotNil(objc_getAssociatedObject(viewController, viewWillDisappearKey));
+    }
+    @finally {
+        [self swapInstanceMethodsForClass:[UIViewController class]
+                              forSelector:realViewWillDisappear
+                            otherSelector:testViewWillDisappear];
+    }
+}
+
+- (void)testViewControllerWhenItRespondsToNotificationPushesNewViewControllerToNavigationController
+{
+    viewController = [self createViewController];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
     
-    id animatedParameter = objc_getAssociatedObject(viewController, viewWillDisappearKey);
-    XCTAssertNotNil(animatedParameter);
+    [viewController userDidSelectTopicNotification:nil];
+    
+    UIViewController *topViewController = navController.topViewController;
+    XCTAssertNotEqualObjects(topViewController, viewController);
+}
+
+- (void)testNewViewControllerWhenPushedToNavigationControllerHasAQuestionListDataSourceForTheTopic
+{
+    viewController = [self createViewController];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
+    Topic *iPhoneTopic = [[Topic alloc] initWithName:@"iPhone" tag:@"iphone"];
+    NSNotification *topicNotification = [NSNotification notificationWithName:TopicTableDidSelectTopicNotification
+                                                                      object:iPhoneTopic];
+    
+    [viewController userDidSelectTopicNotification:topicNotification];
+    
+    BrowseOverflowViewController *topViewController = (BrowseOverflowViewController *)navController.topViewController;
+    id tableViewDataSource = topViewController.tableViewDataSource;
+    XCTAssertTrue([tableViewDataSource isKindOfClass:[QuestionListTableDataSource class]]);
+    Topic *topicFromQuestionListDataSource = [(QuestionListTableDataSource *)tableViewDataSource topic];
+    XCTAssertEqualObjects(topicFromQuestionListDataSource, iPhoneTopic);
 }
 
 @end

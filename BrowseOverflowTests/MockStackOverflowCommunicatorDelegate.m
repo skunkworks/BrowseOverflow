@@ -20,12 +20,12 @@
     // Not needed, since StackOverflowCommunicatorTests only uses searchForQuestions to test connectivity    
 }
 
-- (void)searchForQuestionsDidReturnJSON:(NSString *)objectNotation
+- (void)fetchQuestionsDidReturnJSON:(NSString *)objectNotation
 {
     self.receivedJSON = objectNotation;
 }
 
-- (void)searchForQuestionsFailedWithError:(NSError *)error
+- (void)fetchQuestionsFailedWithError:(NSError *)error
 {
     self.topicFailureErrorCode = [error code];
 }

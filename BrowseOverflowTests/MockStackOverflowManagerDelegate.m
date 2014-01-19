@@ -30,4 +30,14 @@
     self.receivedQuestion = question;
 }
 
+- (void)fetchAnswersForQuestionFailedWithError:(NSError *)error
+{
+    self.fetchError = error;
+}
+
+- (void)didReceiveAnswers:(NSArray *)answers
+{
+    self.receivedAnswers = answers;
+}
+
 @end

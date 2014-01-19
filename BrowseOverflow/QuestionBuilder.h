@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "Question.h"
+#import "PersonBuilder.h"
 
 @interface QuestionBuilder : NSObject
 
@@ -17,6 +18,11 @@ enum {
     QuestionBuilderInvalidJSONError,
     QuestionBuilderMissingDataError
 };
+
+// Designated initializer
+- (id)initWithPersonBuilder:(PersonBuilder *)personBuilder;
+
+@property (nonatomic, strong) PersonBuilder *personBuilder;
 
 // Returns NSArray of Question
 // Pass in pointer to NSError to receive errors when question parsing fails

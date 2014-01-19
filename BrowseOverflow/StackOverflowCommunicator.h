@@ -11,12 +11,14 @@
 
 @protocol StackOverflowCommunicatorDelegate <NSObject>
 
-- (void)searchForQuestionsFailedWithError:(NSError *)error;
-- (void)searchForQuestionsDidReturnJSON:(NSString *)objectNotation;
+- (void)fetchQuestionsFailedWithError:(NSError *)error;
+- (void)fetchQuestionsDidReturnJSON:(NSString *)objectNotation;
 - (void)fetchBodyForQuestionWithIDFailedWithError:(NSError *)error;
 - (void)fetchBodyForQuestionWithID:(NSInteger)questionID
                      didReturnJSON:(NSString *)objectNotation;
-
+- (void)fetchAnswersForQuestionWithIDFailedWithError:(NSError *)error;
+- (void)fetchAnswersForQuestionWithID:(NSInteger)questionID
+                        didReturnJSON:(NSString *)objectNotation;
 @end
 
 @interface StackOverflowCommunicator : NSObject <NSURLConnectionDelegate, NSURLConnectionDataDelegate>
@@ -28,11 +30,12 @@
 
 extern NSString *const StackOverflowCommunicatorErrorDomain;
 
-- (void)searchForQuestionsWithTag:(NSString *)tag;
+- (void)fetchQuestionsWithTag:(NSString *)tag;
 - (void)fetchBodyForQuestionWithID:(NSInteger)questionID;
+- (void)fetchAnswersToQuestionWithID:(NSInteger)questionID;
 
-- (void)downloadInformationForQuestionWithID:(NSInteger)questionID;
-- (void)downloadAnswersToQuestionWithID:(NSInteger)questionID;
+// What should this method do?
+- (void)fetchInformationForQuestionWithID:(NSInteger)questionID;
 
 - (void)cancelAndDiscardCurrentURLConnection;
 

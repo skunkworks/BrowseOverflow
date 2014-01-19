@@ -19,7 +19,7 @@
 
 @implementation QuestionBuilderTests
 
-static NSString *NoQuestionJSON = @"{ \"noitems\": true }";
+static NSString *MissingDataJSON = @"{ \"noitems\": true }";
 
 static NSString *EmptyQuestionJSON = @"{ \"items\": [ {} ] }";
 
@@ -60,8 +60,32 @@ static NSString *OneQuestionJSON = @"{"
 @"}";
 
 - (QuestionBuilder *)createQuestionBuilder {
-    return [[QuestionBuilder alloc] init];
+    PersonBuilder *personBuilder = [[PersonBuilder alloc] init];
+    return [[QuestionBuilder alloc] initWithPersonBuilder:personBuilder];
 }
+
+#pragma mark -
+#pragma mark QuestionsFromJSON tests
+
+#pragma mark Initializer tests
+
+- (void)testInitByDefaultThrowsException
+{
+    XCTAssertThrows([[QuestionBuilder alloc] init]);
+}
+
+- (void)testInitWithPersonBuilderWhenPersonBuilderIsNilThrowsException
+{
+    XCTAssertThrows([[QuestionBuilder alloc] initWithPersonBuilder:nil]);
+}
+
+- (void)testInitWithPersonBuilderWhenPersonBuilderIsNotNilDoesNotThrowException
+{
+    PersonBuilder *personBuilder = [[PersonBuilder alloc] init];
+    XCTAssertNoThrow([[QuestionBuilder alloc] initWithPersonBuilder:personBuilder]);
+}
+
+#pragma mark Tests when JSON is nil
 
 - (void)testQuestionsFromJSONWhenItReceivesNilJSONThrowsException
 {
@@ -71,12 +95,16 @@ static NSString *OneQuestionJSON = @"{"
     XCTAssertThrows([questionBuilder questionsFromJSON:nil error:&error], @"Lack of JSON data should be handled elsewhere");
 }
 
+#pragma mark Tests when error is NULL
+
 - (void)testQuestionsFromJSONWhenItReceivesNULLErrorDoesNotThrowException
 {
     questionBuilder = [self createQuestionBuilder];
     
     XCTAssertNoThrow([questionBuilder questionsFromJSON:@"Some data" error:NULL]);
 }
+
+#pragma mark Tests when JSON is invalid
 
 - (void)testQuestionsFromJSONWhenItReceivesInvalidJSONSetsErrorWithInvalidJSONCode
 {
@@ -97,12 +125,14 @@ static NSString *OneQuestionJSON = @"{"
     XCTAssertNil(questions);
 }
 
+#pragma mark Tests when JSON is valid but missing data
+
 // "Missing data": data that doesn't match the expected JSON format for StackOverflow API
-- (void)testQuestionsFromJSONWhenItReceivesJSONWithNoQuestionsReturnsNil
+- (void)testQuestionsFromJSONWhenItReceivesJSONWithMissingDataReturnsNil
 {
     questionBuilder = [self createQuestionBuilder];
     
-    NSArray *questions = [questionBuilder questionsFromJSON:NoQuestionJSON error:NULL];
+    NSArray *questions = [questionBuilder questionsFromJSON:MissingDataJSON error:NULL];
     
     XCTAssertNil(questions);
 }
@@ -112,10 +142,12 @@ static NSString *OneQuestionJSON = @"{"
     questionBuilder = [self createQuestionBuilder];
     NSError *error;
     
-    [questionBuilder questionsFromJSON:NoQuestionJSON error:&error];
+    [questionBuilder questionsFromJSON:MissingDataJSON error:&error];
     
     XCTAssertEqual([error code], (NSInteger)QuestionBuilderMissingDataError);
 }
+
+#pragma mark Tests when JSON is valid
 
 // "Right format": has an items property that contains an array (i.e. questions array)
 - (void)testQuestionsFromJSONWhenItReceivesValidJSONWithRightFormatDoesNotSetError
@@ -165,6 +197,8 @@ static NSString *OneQuestionJSON = @"{"
     XCTAssertEqual([questions count], (NSUInteger)1);
 }
 
+#pragma mark - FillQuestion tests
+
 - (void)testFillQuestionWhenItReceivesNilQuestionThrowsException
 {
     questionBuilder = [self createQuestionBuilder];
@@ -199,7 +233,9 @@ static NSString *OneQuestionJSON = @"{"
     Question *question = [[Question alloc] init];
     NSError *error;
     
-    [questionBuilder fillQuestion:question withQuestionBodyJSON:NoQuestionJSON error:&error];
+    [questionBuilder fillQuestion:question
+             withQuestionBodyJSON:MissingDataJSON
+                            error:&error];
     
     XCTAssertEqual([error code], QuestionBuilderMissingDataError);
 }
@@ -209,7 +245,9 @@ static NSString *OneQuestionJSON = @"{"
     questionBuilder = [self createQuestionBuilder];
     Question *question = [[Question alloc] init];
     
-    BOOL successful = [questionBuilder fillQuestion:question withQuestionBodyJSON:NoQuestionJSON error:NULL];
+    BOOL successful = [questionBuilder fillQuestion:question
+                               withQuestionBodyJSON:MissingDataJSON
+                                              error:NULL];
     
     XCTAssertFalse(successful);
 }

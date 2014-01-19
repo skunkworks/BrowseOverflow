@@ -57,9 +57,9 @@ NSString *const StackOverflowCommunicatorErrorDomain = @"StackOverflowCommunicat
                                                          delegate:self];
 }
 
-- (void)searchForQuestionsWithTag:(NSString *)tag
+- (void)fetchQuestionsWithTag:(NSString *)tag
 {
-    // TODO: throw exception if tag nil
+    NSParameterAssert(tag);
     
     NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/search?pagesize=20&order=desc&sort=activity&site=stackoverflow&tagged=%@", tag];
     NSURL *url = [NSURL URLWithString:urlString];
@@ -69,10 +69,10 @@ NSString *const StackOverflowCommunicatorErrorDomain = @"StackOverflowCommunicat
     id<StackOverflowCommunicatorDelegate> delegate = self.delegate;
     [self initiateConnectionToURL:url
                 completionHandler:^(NSString *jsonResponse) {
-                    [delegate searchForQuestionsDidReturnJSON:jsonResponse];
+                    [delegate fetchQuestionsDidReturnJSON:jsonResponse];
                 }
                      errorHandler:^(NSError *error) {
-                         [delegate searchForQuestionsFailedWithError:error];
+                         [delegate fetchQuestionsFailedWithError:error];
                      }];
 }
 
@@ -93,24 +93,27 @@ NSString *const StackOverflowCommunicatorErrorDomain = @"StackOverflowCommunicat
                      }];
 }
 
-- (void)downloadInformationForQuestionWithID:(NSInteger)questionID
+- (void)fetchInformationForQuestionWithID:(NSInteger)questionID
 {
     NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%d?order=desc&sort=activity&site=stackoverflow", questionID];
     NSURL *url = [NSURL URLWithString:urlString];
     [self fetchContentAtURL:url];
     
+    // FIXME: Incomplete implementation
     [self initiateConnectionToURL:url
-     completionHandler:nil
+                completionHandler:nil
                      errorHandler:nil];
 }
 
-- (void)downloadAnswersToQuestionWithID:(NSInteger)questionID
+- (void)fetchAnswersToQuestionWithID:(NSInteger)questionID
 {
-    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%d/answers?order=desc&sort=activity&site=stackoverflow", questionID];
+    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%d/answers?order=desc&sort=activity&site=stackoverflow&filter=!-.AG)tkYKcl.", questionID];
     NSURL *url = [NSURL URLWithString:urlString];
     [self fetchContentAtURL:url];
     
-    [self initiateConnectionToURL:url completionHandler:nil
+    // FIXME: Incomplete implementation
+    [self initiateConnectionToURL:url
+                completionHandler:nil
                      errorHandler:nil];
 }
 

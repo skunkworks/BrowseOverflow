@@ -23,6 +23,24 @@ NSString *const QuestionAskerNameKey = @"display_name";
 NSString *const QuestionAskerAvatarKey = @"profile_image";
 NSString *const QuestionBodyKey = @"body";
 
+#pragma mark - Initializers
+
+- (id)init {
+    [NSException raise:@"Unsupported initializer" format:@"Use initWithPersonBuilder: instead"];
+    return nil;
+}
+
+- (id)initWithPersonBuilder:(PersonBuilder *)personBuilder {
+    NSParameterAssert(personBuilder);
+    
+    if (self = [super init]) {
+        _personBuilder = personBuilder;
+    }
+    return self;
+}
+
+#pragma mark - Public methods
+
 - (NSArray *)questionsFromJSON:(NSString *)objectNotation error:(NSError **)error
 {
     NSParameterAssert(objectNotation);
@@ -65,14 +83,7 @@ NSString *const QuestionBodyKey = @"body";
         question.date = [NSDate dateWithTimeIntervalSince1970:dateInterval];
         
         id jsonAsker = [jsonQuestion objectForKey:QuestionAskerKey];
-        if (jsonAsker) {
-            NSString *askerName = [jsonAsker objectForKey:QuestionAskerNameKey];
-            NSString *askerAvatar = [jsonAsker objectForKey:QuestionAskerAvatarKey];
-            NSURL *askerAvatarURL = [NSURL URLWithString:askerAvatar]; // Is nil if string is nil
-            if (askerName || askerAvatarURL) {
-                question.asker = [[Person alloc] initWithName:askerName avatarURL:askerAvatarURL];
-            }
-        }
+        question.asker = [self.personBuilder personFromJSONObject:jsonAsker];
         [questions addObject:question];
     }
     return [questions copy];

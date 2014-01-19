@@ -1,5 +1,5 @@
 //
-//  MockQuestionBuilder.h
+//  FakeQuestionBuilder.h
 //  BrowseOverflow
 //
 //  Created by Richard Shin on 1/13/14.
@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "QuestionBuilder.h"
 
-@interface MockQuestionBuilder : QuestionBuilder
+@interface FakeQuestionBuilder : QuestionBuilder
 
 @property (nonatomic, copy) NSString *receivedJSON;
 @property (nonatomic, strong) Question *receivedQuestion;

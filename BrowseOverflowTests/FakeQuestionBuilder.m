@@ -1,14 +1,14 @@
 //
-//  MockQuestionBuilder.m
+//  FakeQuestionBuilder.m
 //  BrowseOverflow
 //
 //  Created by Richard Shin on 1/13/14.
 //  Copyright (c) 2014 Richard Shin. All rights reserved.
 //
 
-#import "MockQuestionBuilder.h"
+#import "FakeQuestionBuilder.h"
 
-@implementation MockQuestionBuilder
+@implementation FakeQuestionBuilder
 
 
 - (NSArray *)questionsFromJSON:(NSString *)objectNotation
@@ -16,7 +16,6 @@
 {
     self.receivedJSON = objectNotation;
     *error = self.errorToSet;
-    // TODO: parse JSON, return objects, set error?
     return self.questionsToReturn;
 }
 

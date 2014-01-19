@@ -11,8 +11,10 @@
 
 @interface MockStackOverflowCommunicator : StackOverflowCommunicator
 
-@property (nonatomic) BOOL wasAskedToFetchQuestions;
-@property (nonatomic) BOOL wasAskedToFetchQuestionBody;
-@property (nonatomic) NSInteger questionIDItFetched;
+@property (nonatomic, readonly) BOOL wasAskedToFetchQuestions;
+@property (nonatomic, readonly) BOOL wasAskedToFetchQuestionBody;
+@property (nonatomic, readonly) BOOL wasAskedToFetchAnswers;
+@property (nonatomic, readonly) NSInteger questionIDItFetched;
+@property (nonatomic, readonly) NSString *tagItFetched;
 
 @end

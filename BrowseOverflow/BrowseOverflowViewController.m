@@ -59,6 +59,7 @@
     questionListDataSource.topic = (Topic *)notification.object;
     viewController.tableViewDataSource = questionListDataSource;
     viewController.configuration = self.configuration;
+    viewController.title = [NSString stringWithFormat:@"%@ Questions", questionListDataSource.topic.name];
     [self.navigationController pushViewController:viewController
                                          animated:YES];
 }

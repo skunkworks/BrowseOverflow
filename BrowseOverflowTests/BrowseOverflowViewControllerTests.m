@@ -359,6 +359,22 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     XCTAssertEqualObjects(topViewController.configuration, viewController.configuration);
 }
 
+- (void)testViewControllerWhenUserSelectsTopicPushesNewViewControllerWithTitle
+{
+    viewController = [self createViewController];
+    viewController.configuration = [[BrowseOverflowConfiguration alloc] init];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
+    Topic *iPhoneTopic = [[Topic alloc] initWithName:@"iPhone" tag:@"iphone"];
+    
+    NSNotification *topicNotification = [NSNotification notificationWithName:TopicTableDidSelectTopicNotification
+                                                                      object:iPhoneTopic];
+    [viewController userDidSelectTopicNotification:topicNotification];
+    
+    BrowseOverflowViewController *topViewController = (BrowseOverflowViewController *)navController.topViewController;
+    NSString *expectedTitle = [NSString stringWithFormat:@"%@ Questions", iPhoneTopic.name];
+    XCTAssertEqualObjects(topViewController.title, expectedTitle);
+}
+
 #pragma mark - Response to StackOverflowManagerDelegate events
 
 // A bit confusing: the QuestionListTableDataSource has a Topic property, but it also has an addQuestion method.

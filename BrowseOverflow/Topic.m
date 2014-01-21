@@ -10,7 +10,7 @@
 
 @implementation Topic
 {
-    NSArray *questions;
+    NSMutableArray *questions;
 }
 
 - (id)initWithName:(NSString *)name tag:(NSString *)tag
@@ -18,7 +18,7 @@
     if (self = [super init]) {
         _name = [name copy];
         _tag = [tag copy];
-        questions = [NSArray array];
+        questions = [NSMutableArray array];
     }
     return self;
 }
@@ -30,11 +30,30 @@
 
 - (void)addQuestion:(id)question
 {
-    questions = [questions arrayByAddingObject:question];
+    [questions addObject:question];
     if ([questions count] > 20) {
-        questions = [[self class] sortedQuestionsLatestFirst:questions];
-        questions = [questions subarrayWithRange:NSMakeRange(0, 20)];
+        NSArray *sortedQuestions = [[self class] sortedQuestionsLatestFirst:questions];
+        questions = [NSMutableArray arrayWithArray:[sortedQuestions subarrayWithRange:NSMakeRange(0, 20)]];
     }
+
+//    NSInteger questionID = [(Question *)question questionID];
+//    NSUInteger idx = [questions indexOfObjectPassingTest:^BOOL(id obj, NSUInteger idx, BOOL *stop) {
+//        Question *testQuestion = (Question *)obj;
+//        if (testQuestion.questionID == questionID) {
+//            *stop = YES;
+//            return YES;
+//        }
+//        return NO;
+//    }];
+//    if (idx == NSNotFound) {
+//        [questions addObject:question];
+//        if ([questions count] > 20) {
+//            NSArray *sortedQuestions = [[self class] sortedQuestionsLatestFirst:questions];
+//            questions = [NSMutableArray arrayWithArray:[sortedQuestions subarrayWithRange:NSMakeRange(0, 20)]];
+//        }
+//    } else {
+//        questions[idx] = question;
+//    }
 }
 
 + (NSArray *)sortedQuestionsLatestFirst:(NSArray *)questionList

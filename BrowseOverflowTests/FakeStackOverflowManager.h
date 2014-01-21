@@ -7,11 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "StackOverflowCommunicator.h"
+#import "StackOverflowManager.h"
 
-@interface MockStackOverflowCommunicatorDelegate : NSObject <StackOverflowCommunicatorDelegate>
+@interface FakeStackOverflowManager : StackOverflowManager <StackOverflowCommunicatorDelegate>
 
 @property (nonatomic) NSInteger topicFailureErrorCode;
 @property (nonatomic, strong) NSString *receivedJSON;
-
+@property (nonatomic) BOOL wasAskedToFetchQuestions;
 @end

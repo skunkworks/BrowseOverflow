@@ -16,11 +16,9 @@ NSString *const QuestionBuilderError = @"QuestionBuilderError";
 NSString *const QuestionsArrayKey = @"items";
 NSString *const QuestionIDKey = @"question_id";
 NSString *const QuestionDateKey = @"creation_date";
-NSString *const QuestionTitleKey = @"title";
 NSString *const QuestionScoreKey = @"score";
 NSString *const QuestionAskerKey = @"owner";
-NSString *const QuestionAskerNameKey = @"display_name";
-NSString *const QuestionAskerAvatarKey = @"profile_image";
+NSString *const QuestionTitleKey = @"title";
 NSString *const QuestionBodyKey = @"body";
 
 #pragma mark - Initializers

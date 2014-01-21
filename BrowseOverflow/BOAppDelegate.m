@@ -12,7 +12,19 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
+    BrowseOverflowViewController *bovc = [[BrowseOverflowViewController alloc] init];
+    TopicTableDataSource *topicTableDataSource = [[TopicTableDataSource alloc] init];
+    Topic *topic = [[Topic alloc] initWithName:@"iPhone" tag:@"iphone"];
+    [topicTableDataSource setTopics:@[topic]];
+    bovc.tableViewDataSource = topicTableDataSource;
+    bovc.configuration = [[BrowseOverflowConfiguration alloc] init];
+
+    self.navigationController = [[UINavigationController alloc] initWithRootViewController:bovc];
+
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    self.window.rootViewController = self.navigationController;
+    [self.window makeKeyAndVisible];
+
     return YES;
 }
 							

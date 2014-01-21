@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface AvatarStore : NSObject
+@interface AvatarStore : NSObject <NSURLConnectionDelegate, NSURLConnectionDataDelegate>
 
 - (void)setData:(NSData *)data forLocation:(NSString *)urlString;
 - (NSData *)dataForLocation:(NSString *)location;

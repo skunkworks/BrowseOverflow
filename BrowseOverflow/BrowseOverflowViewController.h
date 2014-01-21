@@ -7,10 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BrowseOverflowConfiguration.h"
 
-@interface BrowseOverflowViewController : UIViewController
+@interface BrowseOverflowViewController : UIViewController <StackOverflowManagerDelegate>
 
-@property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) IBOutlet UITableView *tableView;
+@property (nonatomic, strong) BrowseOverflowConfiguration *configuration;
 
 // Strong pointer because it's the delegate and data source for the table view, not this class
 @property (nonatomic, strong) id<UITableViewDataSource, UITableViewDelegate> tableViewDataSource;

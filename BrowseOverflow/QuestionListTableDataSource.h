@@ -11,11 +11,9 @@
 #import "QuestionSummaryCell.h"
 #import "AvatarStore.h"
 
-@interface QuestionListTableDataSource : NSObject <UITableViewDataSource, UITableViewDelegate>
+@interface QuestionListTableDataSource : NSObject <UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate>
 
 // TODO: build an initWithTopic: method, and have -init throw error?
-
-- (void)addQuestion:(Question *)question;
 
 @property (nonatomic, strong) Topic *topic;
 @property (nonatomic, strong) AvatarStore *avatarStore;

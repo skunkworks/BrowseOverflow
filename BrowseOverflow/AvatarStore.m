@@ -29,4 +29,19 @@
     return [self.avatarDictionary objectForKey:location];
 }
 
+- (void)fetchDataForLocation:(NSString *)location
+                onCompletion:(void (^)(NSData *))completionHandler
+{
+    NSURL *url = [NSURL URLWithString:location];
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    [NSURLConnection sendAsynchronousRequest:request
+                                       queue:[NSOperationQueue mainQueue]
+                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
+                               NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+                               if (httpResponse.statusCode == 200) {
+                                   completionHandler(data);
+                               }
+                           }];
+}
+
 @end

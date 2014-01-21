@@ -78,7 +78,7 @@ NSString *const StackOverflowCommunicatorErrorDomain = @"StackOverflowCommunicat
 
 - (void)fetchBodyForQuestionWithID:(NSInteger)questionID
 {
-    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%d?pagesize=20&order=desc&sort=activity&site=stackoverflow&filter=!)5E5Eqicc32_BFI72Q8kQtp9Mbg9", questionID];
+    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%ld?pagesize=20&order=desc&sort=activity&site=stackoverflow&filter=!)5E5Eqicc32_BFI72Q8kQtp9Mbg9", (long)questionID];
     NSURL *url = [NSURL URLWithString:urlString];
     [self fetchContentAtURL:url];
     
@@ -95,7 +95,7 @@ NSString *const StackOverflowCommunicatorErrorDomain = @"StackOverflowCommunicat
 
 - (void)fetchInformationForQuestionWithID:(NSInteger)questionID
 {
-    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%d?order=desc&sort=activity&site=stackoverflow", questionID];
+    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%ld?order=desc&sort=activity&site=stackoverflow", (long)questionID];
     NSURL *url = [NSURL URLWithString:urlString];
     [self fetchContentAtURL:url];
     
@@ -107,7 +107,7 @@ NSString *const StackOverflowCommunicatorErrorDomain = @"StackOverflowCommunicat
 
 - (void)fetchAnswersToQuestionWithID:(NSInteger)questionID
 {
-    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%d/answers?order=desc&sort=activity&site=stackoverflow&filter=!-.AG)tkYKcl.", questionID];
+    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%ld/answers?order=desc&sort=activity&site=stackoverflow&filter=!-.AG)tkYKcl.", (long)questionID];
     NSURL *url = [NSURL URLWithString:urlString];
     [self fetchContentAtURL:url];
     

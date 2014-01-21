@@ -9,27 +9,28 @@
 #import "QuestionListTableDataSource.h"
 
 @interface QuestionListTableDataSource ()
-@property (nonatomic, strong) NSMutableArray *questions;
 @end
 
 @implementation QuestionListTableDataSource
 
-- (NSMutableArray *)questions {
-    if (!_questions) _questions = [NSMutableArray array];
-    return _questions;
+- (AvatarStore *)avatarStore {
+    if (!_avatarStore) {
+        _avatarStore = [[AvatarStore alloc] init];
+    }
+    return _avatarStore;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView
  numberOfRowsInSection:(NSInteger)section
 {
-    NSInteger questionCount = [self.questions count];
+    NSInteger questionCount = [[self.topic recentQuestions] count];
     return questionCount == 0 ? 1 : questionCount;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView
          cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if ([self.questions count] == 0) {
+    if ([[self.topic recentQuestions] count] == 0) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"placeholder"];
         if (!cell) {
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
@@ -48,34 +49,39 @@
         questionCell = (QuestionSummaryCell *)objs[0];
     }
 
-    Question *question = self.questions[indexPath.row];
+    Question *question = [self.topic recentQuestions][indexPath.row];
     questionCell.titleLabel.text = question.title;
-    questionCell.scoreLabel.text = [NSString stringWithFormat:@"%d", question.score];
-    questionCell.questionIDLabel.text = [NSString stringWithFormat:@"%d", question.questionID];
+    questionCell.scoreLabel.text = [NSString stringWithFormat:@"%ld", (long)question.score];
+    questionCell.personNameLabel.text = question.asker.name;
+    // Have to clear out out avatar, since cells are reused and it could have someone else's avatar set.
+    questionCell.avatarView.image = nil;
     
-    NSData *avatarImageData = [self.avatarStore dataForLocation:[question.asker.avatarURL absoluteString]];
-    // If the Avatar Store already has the image, set the thumbnail.
-    if (avatarImageData) {
-        questionCell.avatarView.image = [UIImage imageWithData:avatarImageData];
-    } else {
-        // Avatar Store doesn't have this thumbnail. Initiate a fetch request to have it set the avatar
-        // once it's been retrieved.
-        // Optimized to fetch only if the table view is not being scrolled
-        if (!tableView.isDecelerating && !tableView.isDragging) {
-            [self.avatarStore fetchDataForLocation:[question.asker.avatarURL absoluteString]
-                                      onCompletion:^(NSData *data) {
-                                          UIImage *avatarImage = [UIImage imageWithData:data];
-                                          questionCell.avatarView.image = avatarImage;
-                                      }];
-        }
-    }
+    [self loadCell:questionCell withAvatarFromLocation:[question.asker.avatarURL absoluteString]];
     
     return questionCell;
 }
 
-- (void)addQuestion:(Question *)question
+- (void)loadCell:(QuestionSummaryCell *)cell withAvatarFromLocation:(NSString *)avatarLocation
 {
-    [self.questions addObject:question];
+    NSData *avatarImageData = [self.avatarStore dataForLocation:avatarLocation];
+
+    // If the Avatar Store already has the image, set the thumbnail.
+    if (avatarImageData) {
+        cell.avatarView.image = [UIImage imageWithData:avatarImageData];
+    } else {
+        // Avatar Store doesn't have this thumbnail. Initiate a fetch request to have it set the avatar
+        // once it's been retrieved.
+        [self.avatarStore fetchDataForLocation:avatarLocation
+                                  onCompletion:^(NSData *data) {
+                                      UIImage *avatarImage = [UIImage imageWithData:data];
+                                      cell.avatarView.image = avatarImage;
+                                  }];
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 150;
 }
 
 @end

@@ -7,9 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BrowseOverflowViewController.h"
+#import "TopicTableDataSource.h"
+#import "BrowseOverflowConfiguration.h"
 
 @interface BOAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
+@property (nonatomic, strong) UINavigationController *navigationController;
 
 @end

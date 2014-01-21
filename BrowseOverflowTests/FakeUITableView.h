@@ -16,4 +16,6 @@
 - (void)setIsDecelerating:(BOOL)decelerating;
 - (void)setIsDragging:(BOOL)dragging;
 
+@property (nonatomic, readonly) BOOL didReceiveReloadData;
+
 @end

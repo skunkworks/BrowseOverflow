@@ -11,6 +11,10 @@
 #import "BrowseOverflowViewController.h"
 #import "TopicTableDataSource.h"
 #import "QuestionListTableDataSource.h"
+#import "FakeStackOverflowManager.h"
+#import "FakeBrowseOverflowConfiguration.h"
+#import "FakeUITableView.h"
+#import "FakeAvatarStore.h"
 
 @interface BrowseOverflowViewControllerTests : XCTestCase
 {
@@ -49,6 +53,8 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
 
 @implementation BrowseOverflowViewControllerTests
 
+#pragma mark - Helper utility methods
+
 - (BrowseOverflowViewController *)createViewController {
     return [[BrowseOverflowViewController alloc] init];
 }
@@ -61,6 +67,8 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     Method otherMethod = class_getInstanceMethod(class, otherSelector);
     method_exchangeImplementations(method, otherMethod);
 }
+
+#pragma mark - Property tests
 
 - (void)testItHasATableViewProperty
 {
@@ -80,6 +88,8 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     
     XCTAssertTrue(tableViewDataSource != NULL);
 }
+
+#pragma mark - Tests after VC has been loaded
 
 - (void)testViewControllerWhenLoadedConnectsTableViewToDataSource
 {
@@ -104,6 +114,23 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     
     XCTAssertEqualObjects(viewController.tableView.delegate, topicTableDataSource);
 }
+
+- (void)testViewDidLoadWhenDataSourceIsQuestionListSetsItsAvatarStoreFromConfiguration
+{
+    viewController = [self createViewController];
+    QuestionListTableDataSource *dataSource = [[QuestionListTableDataSource alloc] init];
+    viewController.tableViewDataSource = dataSource;
+    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
+    FakeAvatarStore *fakeAvatarStore = [[FakeAvatarStore alloc] init];
+    stubConfiguration.avatarStoreToReturn = fakeAvatarStore;
+    viewController.configuration = stubConfiguration;
+    
+    [viewController viewDidLoad];
+    
+    XCTAssertEqualObjects(dataSource.avatarStore, fakeAvatarStore);
+}
+
+#pragma mark - Topic selected notification tests
 
 // *** Thing to test: VC only responds to a particular notification when it's on screen ***
 //   Default path: call nothing, broadcast notification, see if VC did anything
@@ -200,6 +227,8 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     }
 }
 
+#pragma mark - View controller lifecycle method tests
+
 // Book sets up a few tests for the expectation that the super implementations of view controller
 // lifecycle methods are invoked (e.g. viewDidAppear and viewWillDisappear). This seems like a dumb
 // thing to test, but I think it's just the book's way of introducing method swizzling.
@@ -248,7 +277,47 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     }
 }
 
-- (void)testViewControllerWhenItRespondsToNotificationPushesNewViewControllerToNavigationController
+- (void)testViewWillAppearWhenDataSourceIsQuestionListFetchesQuestionsWithCommunicator
+{
+    viewController = [self createViewController];
+    FakeStackOverflowManager *stubManager = [[FakeStackOverflowManager alloc] init];
+    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
+    stubConfiguration.managerToReturn = stubManager;
+    viewController.configuration = stubConfiguration;
+    viewController.tableViewDataSource = [[QuestionListTableDataSource alloc] init];
+    
+    [viewController viewWillAppear:NO];
+    
+    XCTAssertTrue([stubManager wasAskedToFetchQuestions]);
+}
+
+- (void)testViewWillAppearWhenCalledSetsViewControllerAsDelegateOfItsManager
+{
+    viewController = [self createViewController];
+    FakeStackOverflowManager *mockManager = [[FakeStackOverflowManager alloc] init];
+    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
+    stubConfiguration.managerToReturn = mockManager;
+    viewController.configuration = stubConfiguration;
+    
+    [viewController viewWillAppear:NO];
+    
+    XCTAssertEqualObjects(mockManager.delegate, viewController);
+}
+
+#pragma mark - Pushing new view controllers
+
+// The architecture of the code is such that BrowseOverflowViewController is designed to be a generic table view
+// class that has a data source and delegate object (XTableDataSource) that drives its behavior. To respond to various
+// events, the XTableDataSource obj notifies its parent via NSNotificationCenter.
+//
+// It seems a bit confusing that for a generic class like BrowseOverflowViewController that we test its specific
+// behavior for Topic, Question List, etc. This is a personal weakness of mine -- the desire to make things excessively
+// reusable. The god's honest truth is that the scope of the usage of BrowseOverflowViewController is static and
+// known: there are topics, topics have questions, questions have answers. Writing code that makes that assumption
+// is not a bad practice in as much as we don't anticipate any changes to those requirements, and making that assumption
+// simplifies the code.
+
+- (void)testViewControllerWhenUserSelectsTopicPushesNewViewControllerToNavigationController
 {
     viewController = [self createViewController];
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
@@ -259,21 +328,67 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     XCTAssertNotEqualObjects(topViewController, viewController);
 }
 
-- (void)testNewViewControllerWhenPushedToNavigationControllerHasAQuestionListDataSourceForTheTopic
+- (void)testViewControllerWhenUserSelectsTopicPushesNewViewControllerWithQuestionListDataSourceConfiguredForTopic
 {
     viewController = [self createViewController];
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
     Topic *iPhoneTopic = [[Topic alloc] initWithName:@"iPhone" tag:@"iphone"];
+
     NSNotification *topicNotification = [NSNotification notificationWithName:TopicTableDidSelectTopicNotification
                                                                       object:iPhoneTopic];
-    
     [viewController userDidSelectTopicNotification:topicNotification];
     
     BrowseOverflowViewController *topViewController = (BrowseOverflowViewController *)navController.topViewController;
     id tableViewDataSource = topViewController.tableViewDataSource;
     XCTAssertTrue([tableViewDataSource isKindOfClass:[QuestionListTableDataSource class]]);
-    Topic *topicFromQuestionListDataSource = [(QuestionListTableDataSource *)tableViewDataSource topic];
-    XCTAssertEqualObjects(topicFromQuestionListDataSource, iPhoneTopic);
+    XCTAssertEqualObjects([tableViewDataSource topic], iPhoneTopic);
 }
+
+- (void)testViewControllerWhenUserSelectsTopicPushesNewViewControllerWithConfiguration
+{
+    viewController = [self createViewController];
+    viewController.configuration = [[BrowseOverflowConfiguration alloc] init];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
+    Topic *iPhoneTopic = [[Topic alloc] initWithName:@"iPhone" tag:@"iphone"];
+
+    NSNotification *topicNotification = [NSNotification notificationWithName:TopicTableDidSelectTopicNotification
+                                                                      object:iPhoneTopic];
+    [viewController userDidSelectTopicNotification:topicNotification];
+    
+    BrowseOverflowViewController *topViewController = (BrowseOverflowViewController *)navController.topViewController;
+    XCTAssertEqualObjects(topViewController.configuration, viewController.configuration);
+}
+
+#pragma mark - Response to StackOverflowManagerDelegate events
+
+// A bit confusing: the QuestionListTableDataSource has a Topic property, but it also has an addQuestion method.
+// When the VC receives questions from StackOverflowManager, should it add questions to the Topic or should it
+// add them directly to the data source?
+
+- (void)testDidReceiveQuestionsWhenCalledAddsQuestionToTopic
+{
+    viewController = [self createViewController];
+    QuestionListTableDataSource *dataSource = [[QuestionListTableDataSource alloc] init];
+    viewController.tableViewDataSource = dataSource;
+    Topic *topic = [[Topic alloc] initWithName:@"iPhone" tag:@"iphone"];
+    dataSource.topic = topic;
+    Question *question = [[Question alloc] init];
+    
+    [viewController didReceiveQuestions:@[question]];
+    
+    XCTAssertEqual((NSInteger)[[topic recentQuestions] count], 1);
+}
+
+- (void)testDidReceiveQuestionsWhenCalledReloadsTableView
+{
+    viewController = [self createViewController];
+    FakeUITableView *mockTableView = [[FakeUITableView alloc] init];
+    viewController.tableView = mockTableView;
+    
+    [viewController didReceiveQuestions:nil];
+    
+    XCTAssertTrue(mockTableView.didReceiveReloadData);
+}
+
 
 @end

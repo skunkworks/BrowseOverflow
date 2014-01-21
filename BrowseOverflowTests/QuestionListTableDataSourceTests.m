@@ -19,9 +19,17 @@
 
 @implementation QuestionListTableDataSourceTests
 
+#pragma mark - Utility helper methods
+
 - (QuestionListTableDataSource *)createDataSource {
     return [[QuestionListTableDataSource alloc] init];
 }
+
+- (Topic *)createTopic {
+    return [[Topic alloc] initWithName:@"iPhone" tag:@"iphone"];
+}
+
+#pragma mark - Property tests
 
 - (void)testItHasATopicProperty
 {
@@ -32,6 +40,18 @@
     
     XCTAssertEqualObjects(dataSource.topic, topic);
 }
+
+- (void)testItHasAnAvatarStoreProperty
+{
+    dataSource = [self createDataSource];
+    AvatarStore *avatarStore = [[AvatarStore alloc] init];
+    
+    dataSource.avatarStore = avatarStore;
+    
+    XCTAssertEqualObjects(dataSource.avatarStore, avatarStore);
+}
+
+#pragma mark - UITableViewDataSource tests
 
 - (void)testNumberOfRowsWhenItHasNoQuestionsReturnsOne
 {
@@ -45,8 +65,10 @@
 - (void)testNumberOfRowsWhenItHasOneQuestionReturnsOne
 {
     dataSource = [self createDataSource];
+    Topic *topic = [self createTopic];
+    dataSource.topic = topic;
     Question *question = [[Question alloc] init];
-    [dataSource addQuestion:question];
+    [topic addQuestion:question];
     
     NSInteger numberOfRows = [dataSource tableView:nil numberOfRowsInSection:0];
     
@@ -56,10 +78,12 @@
 - (void)testNumberOfRowsWhenItHasTwoQuestionsReturnsTwo
 {
     dataSource = [self createDataSource];
+    Topic *topic = [self createTopic];
+    dataSource.topic = topic;
     Question *question = [[Question alloc] init];
     Question *anotherQuestion = [[Question alloc] init];
-    [dataSource addQuestion:question];
-    [dataSource addQuestion:anotherQuestion];
+    [topic addQuestion:question];
+    [topic addQuestion:anotherQuestion];
     
     NSInteger numberOfRows = [dataSource tableView:nil numberOfRowsInSection:0];
     
@@ -81,8 +105,10 @@
 - (void)testCellForRowWhenItHasQuestionsReturnsCellWithoutPlaceholderMessage
 {
     dataSource = [self createDataSource];
+    Topic *topic = [self createTopic];
+    dataSource.topic = topic;
     Question *question = [[Question alloc] init];
-    [dataSource addQuestion:question];
+    [topic addQuestion:question];
     NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
     
     UITableViewCell *cell = [dataSource tableView:nil cellForRowAtIndexPath:ip];
@@ -94,25 +120,31 @@
 - (void)testCellForRowWhenItHasQuestionsReturnsCellConfiguredWithQuestionProperties
 {
     dataSource = [self createDataSource];
+    Topic *topic = [self createTopic];
+    dataSource.topic = topic;
     Question *question = [[Question alloc] init];
-    [question setTitle:@"Test question title"];
-    [question setQuestionID:12345];
-    [question setScore:42];
-    [dataSource addQuestion:question];
+    question.title = @"Test question title";
+    question.score = 42;
+    question.asker = [[Person alloc] initWithName:@"Richard Shin" avatarURL:nil];
+    [topic addQuestion:question];
     NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
     
     QuestionSummaryCell *questionCell = (QuestionSummaryCell *)[dataSource tableView:nil cellForRowAtIndexPath:ip];
     
     XCTAssertEqualObjects(questionCell.titleLabel.text, @"Test question title");
-    XCTAssertEqualObjects(questionCell.questionIDLabel.text, @"12345");
+    XCTAssertEqualObjects(questionCell.personNameLabel.text, @"Richard Shin");
     XCTAssertEqualObjects(questionCell.scoreLabel.text, @"42");
 }
+
+#pragma mark - AvatarStore interaction tests
 
 // Scenario: QuestionListDataSource returns a cell for a question where the AvatarStore already has an avatar
 // cached in it.
 - (void)testCellForRowWhenAvatarStoreHasCachedAvatarSetsImageForCell
 {
     dataSource = [self createDataSource];
+    Topic *topic = [self createTopic];
+    dataSource.topic = topic;
     // Set up AvatarStore with an image. We fake it however by grabbing the image data
     // from a test fixture image and setting that to represent the image for the "real" URL
     AvatarStore *avatarStore = [[AvatarStore alloc] init];
@@ -128,7 +160,7 @@
     Person *asker = [[Person alloc] initWithName:@"Richard Shin"
                                        avatarURL:realAvatarURL];
     [question setAsker:asker];
-    [dataSource addQuestion:question];
+    [topic addQuestion:question];
     
     NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
     QuestionSummaryCell *cell = (QuestionSummaryCell *)[dataSource tableView:nil
@@ -146,6 +178,8 @@
 - (void)testCellForRowWhenAvatarStoreDoesNotHaveCachedAvatarAsksItToFetchAvatar
 {
     dataSource = [self createDataSource];
+    Topic *topic = [self createTopic];
+    dataSource.topic = topic;
     FakeAvatarStore *mockAvatarStore = [[FakeAvatarStore alloc] init];
     dataSource.avatarStore = mockAvatarStore;
     Question *question = [[Question alloc] init];
@@ -153,7 +187,7 @@
     Person *asker = [[Person alloc] initWithName:@"Richard Shin"
                                        avatarURL:realAvatarURL];
     [question setAsker:asker];
-    [dataSource addQuestion:question];
+    [topic addQuestion:question];
     
     NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
     [dataSource tableView:nil cellForRowAtIndexPath:ip];
@@ -167,6 +201,8 @@
 - (void)testCellForRowWhenItRequestsAvatarStoreToFetchAvatarSendsACompletionBlockToSetImageForCell
 {
     dataSource = [self createDataSource];
+    Topic *topic = [self createTopic];
+    dataSource.topic = topic;
     FakeAvatarStore *mockAvatarStore = [[FakeAvatarStore alloc] init];
     dataSource.avatarStore = mockAvatarStore;
     NSBundle *testBundle = [NSBundle bundleForClass:[self class]];
@@ -178,52 +214,63 @@
     Person *asker = [[Person alloc] initWithName:@"Richard Shin"
                                        avatarURL:realAvatarURL];
     [question setAsker:asker];
-    [dataSource addQuestion:question];
+    [topic addQuestion:question];
     
     NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
     QuestionSummaryCell *questionCell = (QuestionSummaryCell *)[dataSource tableView:nil cellForRowAtIndexPath:ip];
     
     XCTAssertNotNil(questionCell.avatarView.image);
 }
+// Removed this functionality -- premature optimization
+//
+//- (void)testCellForRowWhenATableViewIsBeingScrolledDoesNotSendFetchRequestToAvatarStore
+//{
+//    dataSource = [self createDataSource];
+//    Topic *topic = [self createTopic];
+//    dataSource.topic = topic;
+//    FakeAvatarStore *mockAvatarStore = [[FakeAvatarStore alloc] init];
+//    dataSource.avatarStore = mockAvatarStore;
+//    Question *question = [[Question alloc] init];
+//    NSURL *realAvatarURL = [NSURL URLWithString:@"http://www.gravatar.com/avatar/4576585a7a1eaa2edc8445ac71f3c55d"];
+//    Person *asker = [[Person alloc] initWithName:@"Richard Shin"
+//                                       avatarURL:realAvatarURL];
+//    [question setAsker:asker];
+//    [topic addQuestion:question];
+//    FakeUITableView *stubTableView = [[FakeUITableView alloc] init];
+//    [stubTableView setIsDragging:YES];
+//    
+//    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
+//    [dataSource tableView:stubTableView cellForRowAtIndexPath:ip];
+//    
+//    XCTAssertFalse([mockAvatarStore wasAskedToFetchDataForLocation:[realAvatarURL absoluteString]]);
+//}
+//
+//- (void)testCellForRowWhenATableViewIsDeceleratingDoesNotSendFetchRequestToAvatarStore
+//{
+//    dataSource = [self createDataSource];
+//    Topic *topic = [self createTopic];
+//    dataSource.topic = topic;
+//    FakeAvatarStore *mockAvatarStore = [[FakeAvatarStore alloc] init];
+//    dataSource.avatarStore = mockAvatarStore;
+//    Question *question = [[Question alloc] init];
+//    NSURL *realAvatarURL = [NSURL URLWithString:@"http://www.gravatar.com/avatar/4576585a7a1eaa2edc8445ac71f3c55d"];
+//    Person *asker = [[Person alloc] initWithName:@"Richard Shin"
+//                                       avatarURL:realAvatarURL];
+//    [question setAsker:asker];
+//    [topic addQuestion:question];
+//    FakeUITableView *stubTableView = [[FakeUITableView alloc] init];
+//    [stubTableView setIsDecelerating:YES];
+//    
+//    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
+//    [dataSource tableView:stubTableView cellForRowAtIndexPath:ip];
+//    
+//    XCTAssertFalse([mockAvatarStore wasAskedToFetchDataForLocation:[realAvatarURL absoluteString]]);
+//}
 
-- (void)testCellForRowWhenATableViewIsBeingScrolledDoesNotSendFetchRequestToAvatarStore
-{
-    dataSource = [self createDataSource];
-    FakeAvatarStore *mockAvatarStore = [[FakeAvatarStore alloc] init];
-    dataSource.avatarStore = mockAvatarStore;
-    Question *question = [[Question alloc] init];
-    NSURL *realAvatarURL = [NSURL URLWithString:@"http://www.gravatar.com/avatar/4576585a7a1eaa2edc8445ac71f3c55d"];
-    Person *asker = [[Person alloc] initWithName:@"Richard Shin"
-                                       avatarURL:realAvatarURL];
-    [question setAsker:asker];
-    [dataSource addQuestion:question];
-    FakeUITableView *stubTableView = [[FakeUITableView alloc] init];
-    [stubTableView setIsDragging:YES];
-    
-    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
-    [dataSource tableView:stubTableView cellForRowAtIndexPath:ip];
-    
-    XCTAssertFalse([mockAvatarStore wasAskedToFetchDataForLocation:[realAvatarURL absoluteString]]);
-}
+#pragma mark - UIScrollViewDelegate methods
 
-- (void)testCellForRowWhenATableViewIsDeceleratingDoesNotSendFetchRequestToAvatarStore
-{
-    dataSource = [self createDataSource];
-    FakeAvatarStore *mockAvatarStore = [[FakeAvatarStore alloc] init];
-    dataSource.avatarStore = mockAvatarStore;
-    Question *question = [[Question alloc] init];
-    NSURL *realAvatarURL = [NSURL URLWithString:@"http://www.gravatar.com/avatar/4576585a7a1eaa2edc8445ac71f3c55d"];
-    Person *asker = [[Person alloc] initWithName:@"Richard Shin"
-                                       avatarURL:realAvatarURL];
-    [question setAsker:asker];
-    [dataSource addQuestion:question];
-    FakeUITableView *stubTableView = [[FakeUITableView alloc] init];
-    [stubTableView setIsDecelerating:YES];
-    
-    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
-    [dataSource tableView:stubTableView cellForRowAtIndexPath:ip];
-    
-    XCTAssertFalse([mockAvatarStore wasAskedToFetchDataForLocation:[realAvatarURL absoluteString]]);
-}
+// This is to implement the behavior where thumbnails are loaded only for rows when table view is not moving (i.e.
+// not being dragged or decelerating). Neglecting to do this causes the table view scrolling to jitter.
+// TODO:
 
 @end

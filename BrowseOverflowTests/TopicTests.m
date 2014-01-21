@@ -70,6 +70,39 @@
     XCTAssertEqual(numberOfQuestions, 1);
 }
 
+// TODO: Would be best to implement question uniqueness in Topic, but this will break other tests (not a big deal)
+//
+//- (void)testAddQuestionWhenItHasQuestionWithSameIDReplacesOldQuestionWithNewQuestion
+//{
+//    topic = [self createTopic];
+//    Question *oldQuestion = [[Question alloc] init];
+//    oldQuestion.title = @"Old title";
+//    oldQuestion.score = 42;
+//    oldQuestion.date = [NSDate distantPast];
+//    oldQuestion.questionID = 12345;
+//    oldQuestion.body = @"Old body";
+//    oldQuestion.asker = [[Person alloc] initWithName:@"Some dude" avatarURL:nil];
+//    Question *newQuestion = [[Question alloc] init];
+//    newQuestion.title = @"New title";
+//    newQuestion.score = 43;
+//    newQuestion.date = [NSDate distantFuture];
+//    newQuestion.questionID = 12345;
+//    newQuestion.body = @"New body";
+//    newQuestion.asker = [[Person alloc] initWithName:@"Richard Shin" avatarURL:nil];
+//
+//    [topic addQuestion:oldQuestion];
+//    [topic addQuestion:newQuestion];
+//    
+//    XCTAssertEqual((NSInteger)[[topic recentQuestions] count], 1);
+//    Question *question = [topic recentQuestions][0];
+//    XCTAssertEqualObjects(question.title, @"New title");
+//    XCTAssertEqual(question.score, 43);
+//    XCTAssertEqualObjects(question.date, [NSDate distantFuture]);
+//    XCTAssertEqual(question.questionID, 12345);
+//    XCTAssertEqualObjects(question.body, @"New body");
+//    XCTAssertEqualObjects(question.asker.name, @"Richard Shin");
+//}
+
 - (void)testRecentQuestionsWhenAddedInAscendingChronologicalOrderAreReturnedInDescendingChronologicalOrder
 {
     topic = [self createTopic];

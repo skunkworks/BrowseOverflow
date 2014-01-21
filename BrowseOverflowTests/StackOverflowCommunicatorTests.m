@@ -18,7 +18,7 @@
 //  StackOverflowCommunicator does something.
 
 #import <XCTest/XCTest.h>
-#import "MockStackOverflowCommunicatorDelegate.h"
+#import "FakeStackOverflowManager.h"
 #import "InspectableStackOverflowCommunicator.h"
 #import "NoNetworkStackOverflowCommunicator.h"
 #import "FakeURLResponse.h"
@@ -51,7 +51,7 @@
 {
     StackOverflowCommunicator *communicator = [[StackOverflowCommunicator alloc] init];
     
-    id conformingObj = [[MockStackOverflowCommunicatorDelegate alloc] init];
+    id conformingObj = [[FakeStackOverflowManager alloc] init];
     
     XCTAssertNoThrow(communicator.delegate = conformingObj);
 }
@@ -195,7 +195,7 @@
 - (void)testReceivingResponseWhenResponseHas404StatusNotifiesDelegateWithError
 {
     NoNetworkStackOverflowCommunicator *communicator = [[NoNetworkStackOverflowCommunicator alloc] init];
-    MockStackOverflowCommunicatorDelegate *mockDelegate = [[MockStackOverflowCommunicatorDelegate alloc] init];
+    FakeStackOverflowManager *mockDelegate = [[FakeStackOverflowManager alloc] init];
     communicator.delegate = mockDelegate;
     FakeURLResponse *stub404Response = [[FakeURLResponse alloc] initWithStatusCode:404];
     
@@ -208,7 +208,7 @@
 - (void)testReceivingResponseWhenResponseHas200StatusDoesNotNotifyDelegateWithError
 {
     NoNetworkStackOverflowCommunicator *communicator = [[NoNetworkStackOverflowCommunicator alloc] init];
-    MockStackOverflowCommunicatorDelegate *mockDelegate = [[MockStackOverflowCommunicatorDelegate alloc] init];
+    FakeStackOverflowManager *mockDelegate = [[FakeStackOverflowManager alloc] init];
     communicator.delegate = mockDelegate;
     FakeURLResponse *stub200Response = [[FakeURLResponse alloc] initWithStatusCode:200];
     
@@ -221,7 +221,7 @@
 - (void)testConnectionErrorWhenItOccursNotifiesDelegateWithSameError
 {
     NoNetworkStackOverflowCommunicator *communicator = [[NoNetworkStackOverflowCommunicator alloc] init];
-    MockStackOverflowCommunicatorDelegate *mockDelegate = [[MockStackOverflowCommunicatorDelegate alloc] init];
+    FakeStackOverflowManager *mockDelegate = [[FakeStackOverflowManager alloc] init];
     communicator.delegate = mockDelegate;
     NSError *fakeError = [NSError errorWithDomain:@"Fake domain" code:12345 userInfo:nil];
     
@@ -234,7 +234,7 @@
 - (void)testCommunicatorWhenRequestFinishesSendsRequestDataToDelegate
 {
     NoNetworkStackOverflowCommunicator *communicator = [[NoNetworkStackOverflowCommunicator alloc] init];
-    MockStackOverflowCommunicatorDelegate *mockDelegate = [[MockStackOverflowCommunicatorDelegate alloc] init];
+    FakeStackOverflowManager *mockDelegate = [[FakeStackOverflowManager alloc] init];
     communicator.delegate = mockDelegate;
     
     [communicator fetchQuestionsWithTag:@"sometag"];

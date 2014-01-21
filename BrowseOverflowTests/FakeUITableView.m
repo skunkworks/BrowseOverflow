@@ -8,6 +8,10 @@
 
 #import "FakeUITableView.h"
 
+@interface FakeUITableView ()
+@property (nonatomic, readwrite) BOOL didReceiveReloadData;
+@end
+
 @implementation FakeUITableView
 
 - (BOOL)isDecelerating {
@@ -24,6 +28,10 @@
 
 - (void)setIsDragging:(BOOL)dragging {
     isDragging = dragging;
+}
+
+- (void)reloadData {
+    self.didReceiveReloadData = YES;
 }
 
 @end

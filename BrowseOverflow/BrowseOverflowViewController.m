@@ -11,7 +11,7 @@
 #import "QuestionListTableDataSource.h"
 
 @interface BrowseOverflowViewController ()
-
+@property (nonatomic, strong) StackOverflowManager *manager;
 @end
 
 @implementation BrowseOverflowViewController
@@ -22,6 +22,21 @@
     
     self.tableView.dataSource = self.tableViewDataSource;
     self.tableView.delegate = self.tableViewDataSource;
+    if ([self.tableViewDataSource isKindOfClass:[QuestionListTableDataSource class]]) {
+        QuestionListTableDataSource *dataSource = (QuestionListTableDataSource *)self.tableViewDataSource;
+        dataSource.avatarStore = [self.configuration avatarStore];
+    }
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.manager = [self.configuration createManager];
+    self.manager.delegate = self;
+    if ([self.tableViewDataSource isKindOfClass:[QuestionListTableDataSource class]]) {
+        Topic *topic = [(QuestionListTableDataSource *)self.tableViewDataSource topic];
+        [self.manager fetchQuestionsForTopic:topic];
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -43,8 +58,46 @@
     QuestionListTableDataSource *questionListDataSource = [[QuestionListTableDataSource alloc] init];
     questionListDataSource.topic = (Topic *)notification.object;
     viewController.tableViewDataSource = questionListDataSource;
+    viewController.configuration = self.configuration;
     [self.navigationController pushViewController:viewController
                                          animated:YES];
+}
+
+#pragma mark - StackOverflowManagerDelegate
+
+
+- (void)fetchQuestionsForTopicFailedWithError:(NSError *)error
+{
+    
+}
+
+- (void)didReceiveQuestions:(NSArray *)questions
+{
+    Topic *topic = ((QuestionListTableDataSource *)self.tableViewDataSource).topic;
+    for (Question *question in questions) {
+        [topic addQuestion:question];
+    }
+    [self.tableView reloadData];
+}
+
+- (void)fetchBodyForQuestionFailedWithError:(NSError *)error
+{
+    
+}
+
+- (void)didReceiveQuestionBodyForQuestion:(Question *)question
+{
+    
+}
+
+- (void)fetchAnswersForQuestionFailedWithError:(NSError *)error
+{
+    
+}
+
+- (void)didReceiveAnswers:(NSArray *)answers
+{
+    
 }
 
 @end

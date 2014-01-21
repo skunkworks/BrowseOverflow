@@ -11,6 +11,7 @@
 #import "BrowseOverflowViewController.h"
 #import "TopicTableDataSource.h"
 #import "QuestionListTableDataSource.h"
+#import "QuestionDetailTableDataSource.h"
 #import "FakeStackOverflowManager.h"
 #import "FakeBrowseOverflowConfiguration.h"
 #import "FakeUITableView.h"
@@ -30,6 +31,10 @@ static const char *notificationKey = "BrowseOverflowViewControllerTestsAssociate
 
 - (void)browseOverflowViewControllerTests_userDidSelectTopicNotification: (NSNotification *)note {
     objc_setAssociatedObject(self, notificationKey, note, OBJC_ASSOCIATION_RETAIN);
+}
+
+- (void)browseOverflowViewControllerTests_userDidSelectQuestionNotification:(NSNotification *)notification {
+    objc_setAssociatedObject(self, notificationKey, notification, OBJC_ASSOCIATION_RETAIN);
 }
 
 @end
@@ -130,7 +135,23 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     XCTAssertEqualObjects(dataSource.avatarStore, fakeAvatarStore);
 }
 
-#pragma mark - Topic selected notification tests
+- (void)testViewDidLoadWhenDataSourceIsQuestionDetailSetsItsAvatarStoreFromConfiguration
+{
+    viewController = [self createViewController];
+    QuestionDetailTableDataSource *dataSource = [[QuestionDetailTableDataSource alloc] init];
+    viewController.tableViewDataSource = dataSource;
+    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
+    FakeAvatarStore *fakeAvatarStore = [[FakeAvatarStore alloc] init];
+    stubConfiguration.avatarStoreToReturn = fakeAvatarStore;
+    viewController.configuration = stubConfiguration;
+    
+    [viewController viewDidLoad];
+    
+    XCTAssertEqualObjects(dataSource.avatarStore, fakeAvatarStore);
+}
+
+
+#pragma mark - Notification tests
 
 // *** Thing to test: VC only responds to a particular notification when it's on screen ***
 //   Default path: call nothing, broadcast notification, see if VC did anything
@@ -138,24 +159,24 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
 //   Sad path test: call viewWillDisappear to simulate being pushed off screen, broadcast notification, see if VC did anything
 //
 // *** How to test that the VC "did anything"? ***
-// Book suggests using a category in the test project to override the method configured to fire when the VC receives the notification.
-// The category method uses some runtime trickery (objc_setAssociatedObject), which uses something called "Associative References",
-// which is basically an optional dictionary that every object can use as storage to hold arbitrary key/value pairs. That basically
-// allows us to add instance variables to a category, which is not possible directly. So basically, when the overridden method gets
-// called, it adds some key/value pair, and the test assertion checks for that key/value pair as a way to tell if the notification
-// was being listened to or not.
+// Book suggests using a category in the test project to override the method configured to fire when the VC receives
+// the notification. The category method uses some runtime trickery (objc_setAssociatedObject), which uses something
+// called "Associative References", which is basically an optional dictionary that every object can use as storage to
+// hold arbitrary key/value pairs. That basically allows us to add instance variables to a category, which is not
+// possible directly. So basically, when the overridden method gets called, it adds some key/value pair, and the test
+// assertion checks for that key/value pair as a way to tell if the notification was being listened to or not.
 //
-// I hate this approach. It's still just a dependency on a private method. All it does is check that your private method gets called,
-// and it uses some hocus pocus to add something to a class that didn't belong normally. This is very clearly my bias against using
-// dynamic language features. On second thought, if one were to ever do something like this, it makes most sense to do for a test,
-// where you might be working with some objects that are too difficult to set up to test in the test environment. But isn't a class
-// that's hard to test a code smell?
+// I hate this approach. It's still just a dependency on a private method. All it does is check that your private method
+// gets called, and it uses some hocus pocus to add something to a class that didn't belong normally. This is very
+// clearly my bias against using dynamic language features. On second thought, if one were to ever do something like
+// this, it makes most sense to do for a test where you might be working with some objects that are too difficult to
+// set up to test in the test environment. But isn't a class that's hard to test a code smell?
 //
-// To make it a truly effective test though, you need to define exactly what is the definition of BrowseOverflowViewController
-// "doing something" when the notification occurs. Is it pushing on a new VC? Is that *always* what it should do? What if a subclass
-// decides it wants to present a modal VC instead? Those are questions we don't know how to answer yet, so there's a good argument
-// that you should proceed with a haphazard approach and play around until you know a little more about the requirements, at which
-// point you can circle back and refactor.
+// To make it a truly effective test though, you need to define exactly what is the definition of
+// BrowseOverflowViewController "doing something" when the notification occurs. Is it pushing on a new VC? Is that
+// *always* what it should do? What if a subclass decides it wants to present a modal VC instead? Those are questions
+// we don't know how to answer yet, so there's a good argument that you should proceed with a haphazard approach and
+// play around until you know a little more about the requirements, at which point you can circle back and refactor.
 
 - (void)testViewControllerBeforeViewAppearsDoesNotRespondToNotification
 {
@@ -227,6 +248,74 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     }
 }
 
+- (void)testViewControllerBeforeViewAppearsDoesNotRespondToQuestionNotification
+{
+    viewController = [self createViewController];
+    SEL realUserDidSelectQuestionNotification = NSSelectorFromString(@"userDidSelectQuestionNotification:");
+    SEL testUserDidSelectQuestionNotification = @selector(browseOverflowViewControllerTests_userDidSelectQuestionNotification:);
+    [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                          forSelector:realUserDidSelectQuestionNotification
+                        otherSelector:testUserDidSelectQuestionNotification];
+    
+    @try {
+        [[NSNotificationCenter defaultCenter] postNotificationName:QuestionListTableDidSelectQuestionNotification
+                                                            object:nil];
+        
+        XCTAssertNil(objc_getAssociatedObject(viewController, notificationKey));
+    }
+    @finally {
+        [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                              forSelector:realUserDidSelectQuestionNotification
+                            otherSelector:testUserDidSelectQuestionNotification];
+    }
+}
+
+- (void)testViewControllerAfterViewAppearsRespondsToQuestionNotification
+{
+    viewController = [self createViewController];
+    SEL realUserDidSelectQuestionNotification = NSSelectorFromString(@"userDidSelectQuestionNotification:");
+    SEL testUserDidSelectQuestionNotification = @selector(browseOverflowViewControllerTests_userDidSelectQuestionNotification:);
+    [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                          forSelector:realUserDidSelectQuestionNotification
+                        otherSelector:testUserDidSelectQuestionNotification];
+    @try {
+        [viewController viewDidAppear:NO];
+        [[NSNotificationCenter defaultCenter] postNotificationName:QuestionListTableDidSelectQuestionNotification
+                                                            object:nil];
+        
+        XCTAssertNotNil(objc_getAssociatedObject(viewController, notificationKey));
+    }
+    @finally {
+        [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                              forSelector:realUserDidSelectQuestionNotification
+                            otherSelector:testUserDidSelectQuestionNotification];
+    }
+    
+}
+
+- (void)testViewControllerAfterViewDisappearsDoesNotRespondToQuestionNotification
+{
+    viewController = [self createViewController];
+    SEL realUserDidSelectQuestionNotification = NSSelectorFromString(@"userDidSelectQuestionNotification:");
+    SEL testUserDidSelectQuestionNotification = @selector(browseOverflowViewControllerTests_userDidSelectQuestionNotification:);
+    [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                          forSelector:realUserDidSelectQuestionNotification
+                        otherSelector:testUserDidSelectQuestionNotification];
+    @try {
+        [viewController viewDidAppear:NO];
+        [viewController viewWillDisappear:NO];
+        [[NSNotificationCenter defaultCenter] postNotificationName:QuestionListTableDidSelectQuestionNotification
+                                                            object:nil];
+        
+        XCTAssertNil(objc_getAssociatedObject(viewController, notificationKey));
+    }
+    @finally {
+        [self swapInstanceMethodsForClass:[BrowseOverflowViewController class]
+                              forSelector:realUserDidSelectQuestionNotification
+                            otherSelector:testUserDidSelectQuestionNotification];
+    }
+}
+
 #pragma mark - View controller lifecycle method tests
 
 // Book sets up a few tests for the expectation that the super implementations of view controller
@@ -277,20 +366,6 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     }
 }
 
-- (void)testViewWillAppearWhenDataSourceIsQuestionListFetchesQuestionsWithCommunicator
-{
-    viewController = [self createViewController];
-    FakeStackOverflowManager *stubManager = [[FakeStackOverflowManager alloc] init];
-    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
-    stubConfiguration.managerToReturn = stubManager;
-    viewController.configuration = stubConfiguration;
-    viewController.tableViewDataSource = [[QuestionListTableDataSource alloc] init];
-    
-    [viewController viewWillAppear:NO];
-    
-    XCTAssertTrue([stubManager wasAskedToFetchQuestions]);
-}
-
 - (void)testViewWillAppearWhenCalledSetsViewControllerAsDelegateOfItsManager
 {
     viewController = [self createViewController];
@@ -302,6 +377,60 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     [viewController viewWillAppear:NO];
     
     XCTAssertEqualObjects(mockManager.delegate, viewController);
+}
+
+- (void)testViewWillAppearWhenDataSourceIsQuestionListFetchesQuestionsForTopicWithCommunicator
+{
+    viewController = [self createViewController];
+    FakeStackOverflowManager *mockManager = [[FakeStackOverflowManager alloc] init];
+    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
+    stubConfiguration.managerToReturn = mockManager;
+    viewController.configuration = stubConfiguration;
+    QuestionListTableDataSource *dataSource = [[QuestionListTableDataSource alloc] init];
+    Topic *topic = [[Topic alloc] initWithName:@"iPhone" tag:@"iphone"];
+    dataSource.topic = topic;
+    viewController.tableViewDataSource = dataSource;
+    
+    [viewController viewWillAppear:NO];
+    
+    XCTAssertTrue([mockManager wasAskedToFetchQuestions]);
+    XCTAssertEqualObjects([mockManager topicForQuestionsToFetch], dataSource.topic);
+}
+
+- (void)testViewWillAppearWhenDataSourceIsQuestionDetailFetchesQuestionBodyForQuestionWithCommunicator
+{
+    viewController = [self createViewController];
+    FakeStackOverflowManager *mockManager = [[FakeStackOverflowManager alloc] init];
+    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
+    stubConfiguration.managerToReturn = mockManager;
+    viewController.configuration = stubConfiguration;
+    QuestionDetailTableDataSource *dataSource = [[QuestionDetailTableDataSource alloc] init];
+    Question *question = [[Question alloc] init];
+    dataSource.question = question;
+    viewController.tableViewDataSource = dataSource;
+    
+    [viewController viewWillAppear:NO];
+    
+    XCTAssertTrue([mockManager wasAskedToFetchQuestionBody]);
+    XCTAssertEqualObjects([mockManager questionForQuestionBodyToFetch], question);
+}
+
+- (void)testViewWillAppearWhenDataSourceIsQuestionDetailFetchesAnswersForQuestionWithCommunicator
+{
+    viewController = [self createViewController];
+    FakeStackOverflowManager *mockManager = [[FakeStackOverflowManager alloc] init];
+    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
+    stubConfiguration.managerToReturn = mockManager;
+    viewController.configuration = stubConfiguration;
+    QuestionDetailTableDataSource *dataSource = [[QuestionDetailTableDataSource alloc] init];
+    Question *question = [[Question alloc] init];
+    dataSource.question = question;
+    viewController.tableViewDataSource = dataSource;
+    
+    [viewController viewWillAppear:NO];
+    
+    XCTAssertTrue([mockManager wasAskedToFetchAnswers]);
+    XCTAssertEqualObjects([mockManager questionForAnswersToFetch], question);
 }
 
 #pragma mark - Pushing new view controllers
@@ -372,6 +501,64 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     
     BrowseOverflowViewController *topViewController = (BrowseOverflowViewController *)navController.topViewController;
     NSString *expectedTitle = [NSString stringWithFormat:@"%@ Questions", iPhoneTopic.name];
+    XCTAssertEqualObjects(topViewController.title, expectedTitle);
+}
+
+- (void)testViewControllerWhenUserSelectsQuestionPushesNewViewControllerToNavigationController
+{
+    viewController = [self createViewController];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
+    
+    [viewController userDidSelectQuestionNotification:nil];
+    
+    UIViewController *topViewController = navController.topViewController;
+    XCTAssertNotEqualObjects(topViewController, viewController);
+}
+
+- (void)testViewControllerWhenUserSelectsQuestionPushesNewViewControllerWithQuestionDetailDataSourceConfiguredForQuestion
+{
+    viewController = [self createViewController];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
+    Question *question = [[Question alloc] init];
+    
+    NSNotification *notification = [NSNotification notificationWithName:QuestionListTableDidSelectQuestionNotification
+                                                                 object:question];
+    [viewController userDidSelectQuestionNotification:notification];
+    
+    BrowseOverflowViewController *topViewController = (BrowseOverflowViewController *)navController.topViewController;
+    id tableViewDataSource = topViewController.tableViewDataSource;
+    XCTAssertTrue([tableViewDataSource isKindOfClass:[QuestionDetailTableDataSource class]]);
+    XCTAssertEqualObjects([tableViewDataSource question], question);
+}
+
+- (void)testViewControllerWhenUserSelectsQuestionPushesNewViewControllerWithConfiguration
+{
+    viewController = [self createViewController];
+    viewController.configuration = [[BrowseOverflowConfiguration alloc] init];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
+    Question *question = [[Question alloc] init];
+    
+    NSNotification *notification = [NSNotification notificationWithName:QuestionListTableDidSelectQuestionNotification
+                                                                 object:question];
+    [viewController userDidSelectQuestionNotification:notification];
+    
+    BrowseOverflowViewController *topViewController = (BrowseOverflowViewController *)navController.topViewController;
+    XCTAssertEqualObjects(topViewController.configuration, viewController.configuration);
+}
+
+- (void)testViewControllerWhenUserSelectsQuestionPushesNewViewControllerWithTitle
+{
+    viewController = [self createViewController];
+    viewController.configuration = [[BrowseOverflowConfiguration alloc] init];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
+    Question *question = [[Question alloc] init];
+    
+    NSNotification *notification = [NSNotification notificationWithName:QuestionListTableDidSelectQuestionNotification
+                                                                 object:question];
+    [viewController userDidSelectQuestionNotification:notification];
+    
+    BrowseOverflowViewController *topViewController = (BrowseOverflowViewController *)navController.topViewController;
+    NSString *expectedTitle = [NSString stringWithFormat:@"Question %ld", (long)question.questionID];
     XCTAssertEqualObjects(topViewController.title, expectedTitle);
 }
 

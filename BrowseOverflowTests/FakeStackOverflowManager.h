@@ -11,7 +11,14 @@
 
 @interface FakeStackOverflowManager : StackOverflowManager <StackOverflowCommunicatorDelegate>
 
+@property (nonatomic) BOOL wasAskedToFetchQuestions;
+@property (nonatomic) BOOL wasAskedToFetchQuestionBody;
+@property (nonatomic) BOOL wasAskedToFetchAnswers;
+
 @property (nonatomic) NSInteger topicFailureErrorCode;
 @property (nonatomic, strong) NSString *receivedJSON;
-@property (nonatomic) BOOL wasAskedToFetchQuestions;
+@property (nonatomic, strong) Topic *topicForQuestionsToFetch;
+@property (nonatomic, strong) Question *questionForQuestionBodyToFetch;
+@property (nonatomic, strong) Question *questionForAnswersToFetch;
+
 @end

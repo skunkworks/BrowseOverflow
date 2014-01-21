@@ -42,7 +42,7 @@
     receivedNotification = notification;
 }
 
-#pragma mark - Tests
+#pragma mark - UITableViewDataSource
 
 - (void)testNumberOfRowsWhenItHasOneTopicReturnsOne
 {
@@ -115,18 +115,7 @@
     XCTAssertEqualObjects(textLabel, @"sample");
 }
 
-- (void)testTopicAtIndexPathWhenCalledReturnsTopicAtThatIndexPath
-{
-    topicTableDataSource = [self createDataSource];
-    Topic *sampleTopic = [[Topic alloc] initWithName:@"sample" tag:@"sample"];
-    [topicTableDataSource setTopics:@[sampleTopic]];
-    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
-
-    Topic *returnedTopic = [topicTableDataSource topicAtIndexPath:indexPath];
-    
-    XCTAssertEqualObjects(returnedTopic.tag, sampleTopic.tag);
-}
-
+#pragma mark - UITableViewDelegate
 
 // Note: I wrote this when first starting work on building out the delegate. At this point, the data
 // source existed. The question was how to drive the design of the delegate.
@@ -200,17 +189,17 @@
     topicTableDataSource = [self createDataSource];
     Topic *topic = [[Topic alloc] initWithName:@"iphone" tag:@"iphone"];
     [topicTableDataSource setTopics:@[topic]];
-    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
     
     [self startListeningForNotificationName:TopicTableDidSelectTopicNotification
                                  fromObject:nil];
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
     [topicTableDataSource tableView:nil didSelectRowAtIndexPath:indexPath];
+    [self stopListening];
     
     XCTAssertEqualObjects(receivedNotification.name, TopicTableDidSelectTopicNotification);
     Topic *topicFromNotification = (Topic *)[receivedNotification object];
     XCTAssertEqualObjects(topicFromNotification, topic);
     // Cleanup
-    [self stopListening];
     receivedNotification = nil;
 }
 

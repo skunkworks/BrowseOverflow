@@ -18,6 +18,4 @@ extern NSString *const TopicTableDidSelectTopicNotification;
 
 - (void)setTopics:(NSArray *)topics;
 
-- (Topic *)topicAtIndexPath:(NSIndexPath *)indexPath;
-
 @end

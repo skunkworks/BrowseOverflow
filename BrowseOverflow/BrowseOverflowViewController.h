@@ -18,5 +18,6 @@
 @property (nonatomic, strong) id<UITableViewDataSource, UITableViewDelegate> tableViewDataSource;
 
 - (void)userDidSelectTopicNotification:(NSNotification *)notification;
+- (void)userDidSelectQuestionNotification:(NSNotification *)notification;
 
 @end

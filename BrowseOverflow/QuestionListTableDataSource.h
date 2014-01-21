@@ -11,9 +11,11 @@
 #import "QuestionSummaryCell.h"
 #import "AvatarStore.h"
 
-@interface QuestionListTableDataSource : NSObject <UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate>
+@interface QuestionListTableDataSource : NSObject <UITableViewDataSource, UITableViewDelegate>
 
 // TODO: build an initWithTopic: method, and have -init throw error?
+
+extern NSString *const QuestionListTableDidSelectQuestionNotification;
 
 @property (nonatomic, strong) Topic *topic;
 @property (nonatomic, strong) AvatarStore *avatarStore;

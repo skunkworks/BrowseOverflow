@@ -14,6 +14,7 @@
 @interface QuestionListTableDataSourceTests : XCTestCase
 {
     QuestionListTableDataSource *dataSource;
+    NSNotification *receivedNotification;
 }
 @end
 
@@ -27,6 +28,23 @@
 
 - (Topic *)createTopic {
     return [[Topic alloc] initWithName:@"iPhone" tag:@"iphone"];
+}
+
+- (void)startListeningForNotificationName:(NSString *)notificationName fromObject:(id)object
+{
+    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+    [nc addObserver:self
+           selector:@selector(receiveNotification:)
+               name:notificationName
+             object:object];
+}
+
+- (void)stopListening {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)receiveNotification:(NSNotification *)notification {
+    receivedNotification = notification;
 }
 
 #pragma mark - Property tests
@@ -267,10 +285,25 @@
 //    XCTAssertFalse([mockAvatarStore wasAskedToFetchDataForLocation:[realAvatarURL absoluteString]]);
 //}
 
-#pragma mark - UIScrollViewDelegate methods
+#pragma mark - UITableViewDelegate
 
-// This is to implement the behavior where thumbnails are loaded only for rows when table view is not moving (i.e.
-// not being dragged or decelerating). Neglecting to do this causes the table view scrolling to jitter.
-// TODO:
+- (void)testDidSelectCellWhenCalledPostsNotificationWithSelectedQuestion
+{
+    dataSource = [self createDataSource];
+    Topic *topic = [[Topic alloc] initWithName:@"iPhone" tag:@"iphone"];
+    Question *question = [[Question alloc] init];
+    [topic addQuestion:question];
+    dataSource.topic = topic;
+    
+    [self startListeningForNotificationName:QuestionListTableDidSelectQuestionNotification
+                                 fromObject:nil];
+    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
+    [dataSource tableView:nil didSelectRowAtIndexPath:ip];
+    [self stopListening];
+    
+    XCTAssertEqualObjects(receivedNotification.name, QuestionListTableDidSelectQuestionNotification);
+    XCTAssertEqualObjects(receivedNotification.object, question);
+    receivedNotification = nil;
+}
 
 @end

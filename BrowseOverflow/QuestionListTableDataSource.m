@@ -13,12 +13,16 @@
 
 @implementation QuestionListTableDataSource
 
+NSString *const QuestionListTableDidSelectQuestionNotification = @"QuestionListTableDidSelectQuestionNotification";
+
 - (AvatarStore *)avatarStore {
     if (!_avatarStore) {
         _avatarStore = [[AvatarStore alloc] init];
     }
     return _avatarStore;
 }
+
+#pragma mark - UITableViewDataSource
 
 - (NSInteger)tableView:(UITableView *)tableView
  numberOfRowsInSection:(NSInteger)section
@@ -49,7 +53,7 @@
         questionCell = (QuestionSummaryCell *)objs[0];
     }
 
-    Question *question = [self.topic recentQuestions][indexPath.row];
+    Question *question = [self questionForCellAtIndexPath:indexPath];
     questionCell.titleLabel.text = question.title;
     questionCell.scoreLabel.text = [NSString stringWithFormat:@"%ld", (long)question.score];
     questionCell.personNameLabel.text = question.asker.name;
@@ -61,10 +65,28 @@
     return questionCell;
 }
 
+#pragma mark - UITableViewDelegate
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 150;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    Question *question = [self questionForCellAtIndexPath:indexPath];
+    
+    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+    [nc postNotificationName:QuestionListTableDidSelectQuestionNotification
+                      object:question];
+}
+
+#pragma mark - Private methods
+
 - (void)loadCell:(QuestionSummaryCell *)cell withAvatarFromLocation:(NSString *)avatarLocation
 {
     NSData *avatarImageData = [self.avatarStore dataForLocation:avatarLocation];
-
+    
     // If the Avatar Store already has the image, set the thumbnail.
     if (avatarImageData) {
         cell.avatarView.image = [UIImage imageWithData:avatarImageData];
@@ -79,9 +101,8 @@
     }
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    return 150;
+- (Question *)questionForCellAtIndexPath:(NSIndexPath *)indexPath {
+    return [self.topic recentQuestions][indexPath.row];
 }
 
 @end

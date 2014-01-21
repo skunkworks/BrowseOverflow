@@ -110,8 +110,6 @@
     XCTAssertEqualObjects(question.body, @"This is the question body");
 }
 
-// TODO: Haven't set up a question with a Person property!
-
 - (void)testQuestionHasAnswers
 {
     question = [self createQuestion];

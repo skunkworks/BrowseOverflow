@@ -10,6 +10,8 @@
 
 @implementation FakeStackOverflowManager
 
+#pragma mark - StackOverflowCommunicatorDelegate
+
 - (void)fetchQuestionsDidReturnJSON:(NSString *)objectNotation
 {
     self.receivedJSON = objectNotation;
@@ -40,8 +42,23 @@
     // Not needed, since StackOverflowCommunicatorTests only uses to test connectivity
 }
 
+#pragma mark - StackOverflowManager
+
 - (void)fetchQuestionsForTopic:(Topic *)topic {
     self.wasAskedToFetchQuestions = YES;
+    self.topicForQuestionsToFetch = topic;
+}
+
+- (void)fetchBodyForQuestion:(Question *)question
+{
+    self.wasAskedToFetchQuestionBody = YES;
+    self.questionForQuestionBodyToFetch = question;
+}
+
+- (void)fetchAnswersForQuestion:(Question *)question
+{
+    self.wasAskedToFetchAnswers = YES;
+    self.questionForAnswersToFetch = question;
 }
 
 @end

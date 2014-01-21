@@ -62,8 +62,6 @@ NSString *const StackOverflowManagerError = @"StackOverflowManagerError";
     } else {
         [self sendQuestionsToDelegate:questions];
     }
-    
-    // TODO: do something with questions!
 }
 
 - (void)fetchBodyForQuestionWithIDFailedWithError:(NSError *)error
@@ -76,7 +74,7 @@ NSString *const StackOverflowManagerError = @"StackOverflowManagerError";
 {
     NSError *error;
     
-    // TODO: where do we get the question from? Probably from caching in an array from searchForQuestions?
+    // We stored the question whose JSON we just received in the questionForFetchBody property
     BOOL successful = [self.questionBuilder fillQuestion:self.questionForFetchBody
                                     withQuestionBodyJSON:objectNotation
                                                    error:&error];

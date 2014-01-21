@@ -9,6 +9,8 @@
 #import "StackOverflowCommunicator.h"
 
 @interface StackOverflowCommunicator ()
+// FIXME: stashing the completion and error handler blocks is not a good idea because back-to-back async
+// requests will cause one to overwrite the other, and only one of the events receives a response!
 @property (nonatomic, copy) void (^completionHandler)(NSString *jsonResponse);
 @property (nonatomic, copy) void (^errorHandler)(NSError *error);
 @end
@@ -78,7 +80,7 @@ NSString *const StackOverflowCommunicatorErrorDomain = @"StackOverflowCommunicat
 
 - (void)fetchBodyForQuestionWithID:(NSInteger)questionID
 {
-    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%ld?pagesize=20&order=desc&sort=activity&site=stackoverflow&filter=!)5E5Eqicc32_BFI72Q8kQtp9Mbg9", (long)questionID];
+    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%ld?site=stackoverflow&filter=!9f*CwKRWa", (long)questionID];
     NSURL *url = [NSURL URLWithString:urlString];
     [self fetchContentAtURL:url];
     
@@ -89,17 +91,17 @@ NSString *const StackOverflowCommunicatorErrorDomain = @"StackOverflowCommunicat
                                            didReturnJSON:jsonResponse];
                 }
                      errorHandler:^(NSError *error) {
-                         
+                         [delegate fetchBodyForQuestionWithIDFailedWithError:error];
                      }];
 }
 
+// TODO: What the hell was the purpose of this method again?
 - (void)fetchInformationForQuestionWithID:(NSInteger)questionID
 {
     NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%ld?order=desc&sort=activity&site=stackoverflow", (long)questionID];
     NSURL *url = [NSURL URLWithString:urlString];
     [self fetchContentAtURL:url];
     
-    // FIXME: Incomplete implementation
     [self initiateConnectionToURL:url
                 completionHandler:nil
                      errorHandler:nil];
@@ -111,10 +113,15 @@ NSString *const StackOverflowCommunicatorErrorDomain = @"StackOverflowCommunicat
     NSURL *url = [NSURL URLWithString:urlString];
     [self fetchContentAtURL:url];
     
-    // FIXME: Incomplete implementation
+    id<StackOverflowCommunicatorDelegate> delegate = self.delegate;
     [self initiateConnectionToURL:url
-                completionHandler:nil
-                     errorHandler:nil];
+                completionHandler:^(NSString *jsonResponse) {
+                    [delegate fetchAnswersForQuestionWithID:questionID
+                                              didReturnJSON:jsonResponse];
+                }
+                     errorHandler:^(NSError *error) {
+                         [delegate fetchAnswersForQuestionWithIDFailedWithError:error];
+                     }];
 }
 
 - (void)cancelAndDiscardCurrentURLConnection {

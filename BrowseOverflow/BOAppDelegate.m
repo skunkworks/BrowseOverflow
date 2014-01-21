@@ -18,6 +18,7 @@
     [topicTableDataSource setTopics:@[topic]];
     bovc.tableViewDataSource = topicTableDataSource;
     bovc.configuration = [[BrowseOverflowConfiguration alloc] init];
+    bovc.title = @"Browse StackOverflow Topics";
 
     self.navigationController = [[UINavigationController alloc] initWithRootViewController:bovc];
 

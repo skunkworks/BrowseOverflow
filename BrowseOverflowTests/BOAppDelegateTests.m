@@ -74,7 +74,7 @@
     XCTAssertTrue([viewController.tableViewDataSource isKindOfClass:[TopicTableDataSource class]]);
 }
 
-- (void)testAppDelegateWhenAppFinishesLaunchingSetsUpBrowseOverflowViewControllerWithConfiguration
+- (void)testInitialBrowseOverflowViewControllerWhenAppFinishesLaunchingHasAConfigurationObject
 {
     appDelegate = [self createAppDelegate];
     
@@ -82,6 +82,26 @@
     
     BrowseOverflowViewController *viewController = (BrowseOverflowViewController *)appDelegate.navigationController.topViewController;
     XCTAssertTrue([viewController.configuration isKindOfClass:[BrowseOverflowConfiguration class]]);
+}
+
+- (void)testInitialBrowseOverflowViewControllerWhenAppFinishesLaunchingHasATopicTableDataSource
+{
+    appDelegate = [self createAppDelegate];
+    
+    [appDelegate application:nil didFinishLaunchingWithOptions:nil];
+    
+    BrowseOverflowViewController *viewController = (BrowseOverflowViewController *)appDelegate.navigationController.topViewController;
+    XCTAssertTrue([viewController.tableViewDataSource isKindOfClass:[TopicTableDataSource class]]);
+}
+
+- (void)testInitialBrowseOverflowViewControllerWhenAppFinishesLaunchingHasATitle
+{
+    appDelegate = [self createAppDelegate];
+    
+    [appDelegate application:nil didFinishLaunchingWithOptions:nil];
+    
+    BrowseOverflowViewController *viewController = (BrowseOverflowViewController *)appDelegate.navigationController.topViewController;
+    XCTAssertEqualObjects(viewController.title, @"Browse StackOverflow Topics");
 }
 
 @end

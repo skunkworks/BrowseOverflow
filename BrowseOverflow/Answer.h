@@ -16,6 +16,8 @@
 @property (nonatomic, strong) Person *answerer;
 @property (nonatomic, getter = isAccepted) BOOL accepted;
 
+// TODO: need to add an answer ID property and implement answer uniqueness checking in Question -addAnswer
+
 - (NSComparisonResult)compare:(Answer *)otherAnswer;
 
 @end

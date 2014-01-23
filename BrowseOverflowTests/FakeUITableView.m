@@ -10,6 +10,9 @@
 
 @interface FakeUITableView ()
 @property (nonatomic, readwrite) BOOL didReceiveReloadData;
+@property (nonatomic, readwrite) BOOL didReceiveReloadRows;
+@property (nonatomic, readwrite) NSArray *indexPathsFromReloadRows;
+
 @end
 
 @implementation FakeUITableView
@@ -32,6 +35,12 @@
 
 - (void)reloadData {
     self.didReceiveReloadData = YES;
+}
+
+- (void)reloadRowsAtIndexPaths:(NSArray *)indexPaths withRowAnimation:(UITableViewRowAnimation)animation
+{
+    self.didReceiveReloadRows = YES;
+    self.indexPathsFromReloadRows = indexPaths;
 }
 
 @end

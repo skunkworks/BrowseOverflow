@@ -17,5 +17,7 @@
 - (void)setIsDragging:(BOOL)dragging;
 
 @property (nonatomic, readonly) BOOL didReceiveReloadData;
+@property (nonatomic, readonly) BOOL didReceiveReloadRows;
+@property (nonatomic, readonly) NSArray *indexPathsFromReloadRows;
 
 @end

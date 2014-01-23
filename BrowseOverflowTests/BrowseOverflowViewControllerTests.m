@@ -94,64 +94,7 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     XCTAssertTrue(tableViewDataSource != NULL);
 }
 
-#pragma mark - Tests after VC has been loaded
-
-- (void)testViewControllerWhenLoadedConnectsTableViewToDataSource
-{
-    viewController = [self createViewController];
-    TopicTableDataSource *topicTableDataSource = [[TopicTableDataSource alloc] init];
-    viewController.tableViewDataSource = topicTableDataSource;
-    viewController.tableView = [[UITableView alloc] init];
-    
-    [viewController viewDidLoad];
-    
-    XCTAssertEqualObjects(viewController.tableView.dataSource, topicTableDataSource);
-}
-
-- (void)testViewControllerWhenLoadedConnectsTableViewToDelegate
-{
-    viewController = [self createViewController];
-    TopicTableDataSource *topicTableDataSource = [[TopicTableDataSource alloc] init];
-    viewController.tableViewDataSource = topicTableDataSource;
-    viewController.tableView = [[UITableView alloc] init];
-    
-    [viewController viewDidLoad];
-    
-    XCTAssertEqualObjects(viewController.tableView.delegate, topicTableDataSource);
-}
-
-- (void)testViewDidLoadWhenDataSourceIsQuestionListSetsItsAvatarStoreFromConfiguration
-{
-    viewController = [self createViewController];
-    QuestionListTableDataSource *dataSource = [[QuestionListTableDataSource alloc] init];
-    viewController.tableViewDataSource = dataSource;
-    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
-    FakeAvatarStore *fakeAvatarStore = [[FakeAvatarStore alloc] init];
-    stubConfiguration.avatarStoreToReturn = fakeAvatarStore;
-    viewController.configuration = stubConfiguration;
-    
-    [viewController viewDidLoad];
-    
-    XCTAssertEqualObjects(dataSource.avatarStore, fakeAvatarStore);
-}
-
-- (void)testViewDidLoadWhenDataSourceIsQuestionDetailSetsItsAvatarStoreFromConfiguration
-{
-    viewController = [self createViewController];
-    QuestionDetailTableDataSource *dataSource = [[QuestionDetailTableDataSource alloc] init];
-    viewController.tableViewDataSource = dataSource;
-    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
-    FakeAvatarStore *fakeAvatarStore = [[FakeAvatarStore alloc] init];
-    stubConfiguration.avatarStoreToReturn = fakeAvatarStore;
-    viewController.configuration = stubConfiguration;
-    
-    [viewController viewDidLoad];
-    
-    XCTAssertEqualObjects(dataSource.avatarStore, fakeAvatarStore);
-}
-
-
-#pragma mark - Notification tests
+#pragma mark - Notification
 
 // *** Thing to test: VC only responds to a particular notification when it's on screen ***
 //   Default path: call nothing, broadcast notification, see if VC did anything
@@ -316,7 +259,7 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     }
 }
 
-#pragma mark - View controller lifecycle method tests
+#pragma mark - Lifecycle
 
 // Book sets up a few tests for the expectation that the super implementations of view controller
 // lifecycle methods are invoked (e.g. viewDidAppear and viewWillDisappear). This seems like a dumb
@@ -431,6 +374,61 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     
     XCTAssertTrue([mockManager wasAskedToFetchAnswers]);
     XCTAssertEqualObjects([mockManager questionForAnswersToFetch], question);
+}
+
+
+- (void)testViewControllerWhenLoadedConnectsTableViewToDataSource
+{
+    viewController = [self createViewController];
+    TopicTableDataSource *topicTableDataSource = [[TopicTableDataSource alloc] init];
+    viewController.tableViewDataSource = topicTableDataSource;
+    viewController.tableView = [[UITableView alloc] init];
+    
+    [viewController viewDidLoad];
+    
+    XCTAssertEqualObjects(viewController.tableView.dataSource, topicTableDataSource);
+}
+
+- (void)testViewControllerWhenLoadedConnectsTableViewToDelegate
+{
+    viewController = [self createViewController];
+    TopicTableDataSource *topicTableDataSource = [[TopicTableDataSource alloc] init];
+    viewController.tableViewDataSource = topicTableDataSource;
+    viewController.tableView = [[UITableView alloc] init];
+    
+    [viewController viewDidLoad];
+    
+    XCTAssertEqualObjects(viewController.tableView.delegate, topicTableDataSource);
+}
+
+- (void)testViewDidLoadWhenDataSourceIsQuestionListSetsItsAvatarStoreFromConfiguration
+{
+    viewController = [self createViewController];
+    QuestionListTableDataSource *dataSource = [[QuestionListTableDataSource alloc] init];
+    viewController.tableViewDataSource = dataSource;
+    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
+    FakeAvatarStore *fakeAvatarStore = [[FakeAvatarStore alloc] init];
+    stubConfiguration.avatarStoreToReturn = fakeAvatarStore;
+    viewController.configuration = stubConfiguration;
+    
+    [viewController viewDidLoad];
+    
+    XCTAssertEqualObjects(dataSource.avatarStore, fakeAvatarStore);
+}
+
+- (void)testViewDidLoadWhenDataSourceIsQuestionDetailSetsItsAvatarStoreFromConfiguration
+{
+    viewController = [self createViewController];
+    QuestionDetailTableDataSource *dataSource = [[QuestionDetailTableDataSource alloc] init];
+    viewController.tableViewDataSource = dataSource;
+    FakeBrowseOverflowConfiguration *stubConfiguration = [[FakeBrowseOverflowConfiguration alloc] init];
+    FakeAvatarStore *fakeAvatarStore = [[FakeAvatarStore alloc] init];
+    stubConfiguration.avatarStoreToReturn = fakeAvatarStore;
+    viewController.configuration = stubConfiguration;
+    
+    [viewController viewDidLoad];
+    
+    XCTAssertEqualObjects(dataSource.avatarStore, fakeAvatarStore);
 }
 
 #pragma mark - Pushing new view controllers
@@ -562,7 +560,7 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     XCTAssertEqualObjects(topViewController.title, expectedTitle);
 }
 
-#pragma mark - Response to StackOverflowManagerDelegate events
+#pragma mark - StackOverflowManagerDelegate
 
 // A bit confusing: the QuestionListTableDataSource has a Topic property, but it also has an addQuestion method.
 // When the VC receives questions from StackOverflowManager, should it add questions to the Topic or should it
@@ -593,5 +591,44 @@ static const char *viewWillDisappearKey = "BrowseOverflowViewControllerTestsView
     XCTAssertTrue(mockTableView.didReceiveReloadData);
 }
 
+- (void)testDidReceiveQuestionBodyWhenCalledReloadsQuestionDetailRow
+{
+    viewController = [self createViewController];
+    FakeUITableView *mockTableView = [[FakeUITableView alloc] init];
+    viewController.tableView = mockTableView;
+    
+    [viewController didReceiveQuestionBodyForQuestion:nil];
+    
+    XCTAssertTrue(mockTableView.didReceiveReloadRows);
+    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
+    XCTAssertEqualObjects(mockTableView.indexPathsFromReloadRows, @[ip]);
+}
+
+- (void)testDidReceiveAnswersWhenCalledAddsAnswersToQuestion
+{
+    viewController = [self createViewController];
+    QuestionDetailTableDataSource *dataSource = [[QuestionDetailTableDataSource alloc] init];
+    viewController.tableViewDataSource = dataSource;
+    Question *question = [[Question alloc] init];
+    dataSource.question = question;
+
+    Answer *firstAnswer = [[Answer alloc] init];
+    Answer *secondAnswer = [[Answer alloc] init];
+    NSArray *answers = @[firstAnswer, secondAnswer];
+    [viewController didReceiveAnswers:answers];
+    
+    XCTAssertEqualObjects(dataSource.question.answers, answers);
+}
+
+- (void)testDidReceiveAnswersWhenCalledReloadsTableView
+{
+    viewController = [self createViewController];
+    FakeUITableView *mockTableView = [[FakeUITableView alloc] init];
+    viewController.tableView = mockTableView;
+    
+    [viewController didReceiveAnswers:nil];
+    
+    XCTAssertTrue(mockTableView.didReceiveReloadData);
+}
 
 @end

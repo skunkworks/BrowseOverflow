@@ -95,18 +95,6 @@ NSString *const StackOverflowCommunicatorErrorDomain = @"StackOverflowCommunicat
                      }];
 }
 
-// TODO: What the hell was the purpose of this method again?
-- (void)fetchInformationForQuestionWithID:(NSInteger)questionID
-{
-    NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%ld?order=desc&sort=activity&site=stackoverflow", (long)questionID];
-    NSURL *url = [NSURL URLWithString:urlString];
-    [self fetchContentAtURL:url];
-    
-    [self initiateConnectionToURL:url
-                completionHandler:nil
-                     errorHandler:nil];
-}
-
 - (void)fetchAnswersToQuestionWithID:(NSInteger)questionID
 {
     NSString *urlString = [NSString stringWithFormat:@"http://api.stackexchange.com/2.1/questions/%ld/answers?order=desc&sort=activity&site=stackoverflow&filter=!-.AG)tkYKcl.", (long)questionID];

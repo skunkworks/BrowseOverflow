@@ -34,9 +34,6 @@ extern NSString *const StackOverflowCommunicatorErrorDomain;
 - (void)fetchBodyForQuestionWithID:(NSInteger)questionID;
 - (void)fetchAnswersToQuestionWithID:(NSInteger)questionID;
 
-// TODO: What the hell was the purpose of this method again?
-- (void)fetchInformationForQuestionWithID:(NSInteger)questionID;
-
 - (void)cancelAndDiscardCurrentURLConnection;
 
 @property (nonatomic, weak) id <StackOverflowCommunicatorDelegate> delegate;

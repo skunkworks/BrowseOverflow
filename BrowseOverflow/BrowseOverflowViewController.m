@@ -45,7 +45,7 @@
     } else if ([self.tableViewDataSource isKindOfClass:[QuestionDetailTableDataSource class]]) {
         Question *question = [(QuestionDetailTableDataSource *)self.tableViewDataSource question];
         [self.manager fetchBodyForQuestion:question];
-        [self.manager fetchAnswersForQuestion:question];    
+        [self.manager fetchAnswersForQuestion:question];
     }
 }
 

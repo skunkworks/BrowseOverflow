@@ -240,6 +240,10 @@
 
 #pragma mark Fetching question body
 
+// Fetching question body is done with a different communicator instance than the other operations, since the client
+// fetches the question's body and the answers at the same time. Two back-to-back requests like this are not supported
+// by the current design of the communicator -- not only does it cancel and nil out any previous NSURLConnection, the
+// the handler blocks overwrite each other.
 - (void)testFetchBodyForQuestionWhenCalledFetchesBodyWithCommunicator
 {
     mgr = [self createStackOverflowManager];

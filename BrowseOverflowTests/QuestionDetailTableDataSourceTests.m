@@ -68,7 +68,7 @@
     XCTAssertEqualObjects(dataSource.avatarStore, avatarStore);
 }
 
-#pragma mark - UITableViewDataSource tests
+#pragma mark - UITableViewDataSource
 
 - (void)testNumberOfRowsWhenItHasNoQuestionsReturnsOne
 {
@@ -141,15 +141,27 @@
 
 #pragma mark - UITableViewDelegate
 
-// No behavior defined for cell selection, so no delegate methods to test!
+// Book makes a note that testing views can be difficult, but that this is one way to do it. However, Auto Layout
+// makes it so that this doesn't test what we think it does because the cell that's returned comes straight from the
+// nib file without going through auto layout processing.
+//- (void)testHeightForRowForQuestionDetailCellReturnsHeightGreaterThanOrEqualToCellsHeight
+//{
+//    dataSource = [self createDataSource];
+//    Question *question = [self createQuestion];
+//    dataSource.question = question;
+//    
+//    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
+//    UITableViewCell *cell = [dataSource tableView:nil cellForRowAtIndexPath:ip];
+//    CGFloat height = [dataSource tableView:nil heightForRowAtIndexPath:ip];
+//    
+//    XCTAssertTrue(height > CGRectGetHeight(cell.frame));
+//}
 
-#pragma mark - AvatarStore interaction tests
+#pragma mark - AvatarStore interaction
 
 - (void)testCellForRowWhenAvatarStoreHasCachedAvatarSetsImageForCell
 {
     dataSource = [self createDataSource];
-    // Set up AvatarStore with an image. We fake it however by grabbing the image data
-    // from a test fixture image and setting that to represent the image for the "real" URL
     AvatarStore *avatarStore = [[AvatarStore alloc] init];
     NSBundle *testBundle = [NSBundle bundleForClass:[self class]];
     NSURL *testFixtureAvatarURL = [testBundle URLForResource:@"test_fixture_avatar" withExtension:@"png"];
@@ -161,7 +173,6 @@
     Question *question = [self createQuestion];
     Answer *answer = [self createAnswer];
     [question addAnswer:answer];
-    // Set up answer with an asker whose avatar URL matches the one we just inserted into the avatar store
     answer.answerer.avatarURL = realAvatarURL;
     dataSource.question = question;
     
@@ -171,12 +182,6 @@
     XCTAssertNotNil(cell.avatarView.image);
 }
 
-// Scenario: QuestionListDataSource returns a cell for a question where the AvatarStore does not have an avatar
-// cached in it. It should ask the AvatarStore to fetch data from a URL asynchronously.
-//
-// Note: the book has you use NSNotificationCenter to send a message to the data source when the avatar has been
-// fetched. I think it's much cleaner to use blocks to do this. We can have the data source check to see if that
-// image exists in the AvatarStore. If it doesn't, it can make a call to fetch it and do something on completion.
 - (void)testCellForRowWhenAvatarStoreDoesNotHaveCachedAvatarAsksItToFetchAvatar
 {
     dataSource = [self createDataSource];
@@ -195,9 +200,6 @@
     XCTAssertTrue([mockAvatarStore wasAskedToFetchDataForLocation:[realAvatarURL absoluteString]]);
 }
 
-// Scenario: When the AvatarStore successfully fetches data from the requested URL, it should have been handed a
-// completion handler block that sets the avatarView in the cell. Verify that that's the case (i.e. stub the
-// AvatarStore method so that it immediately executes the block and passes valid avatar data back).
 - (void)testCellForRowWhenItRequestsAvatarStoreToFetchAvatarSendsACompletionBlockToSetImageForCell
 {
     dataSource = [self createDataSource];
@@ -220,5 +222,4 @@
     XCTAssertNotNil(cell.avatarView.image);
 }
 
-// TODO: Should put in tests for QuestionDetailCell avatar loading
 @end

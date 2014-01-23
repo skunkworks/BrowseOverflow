@@ -156,23 +156,26 @@
 
 #pragma mark - UITableViewDelegate
 
-- (void)testHeightForRowWhenCellHasAQuestionReturnsValueGreaterThanOrEqualToCellHeight
-{
-    dataSource = [self createDataSource];
-    Topic *topic = [self createTopic];
-    dataSource.topic = topic;
-    Question *question = [[Question alloc] init];
-    question.title = @"Test question title";
-    question.score = 42;
-    question.asker = [[Person alloc] initWithName:@"Richard Shin" avatarURL:nil];
-    [topic addQuestion:question];
-    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
-    QuestionSummaryCell *questionCell = (QuestionSummaryCell *)[dataSource tableView:nil cellForRowAtIndexPath:ip];
-    
-    CGFloat heightForRow = [dataSource tableView:nil heightForRowAtIndexPath:ip];
-    
-    XCTAssertTrue(heightForRow >= CGRectGetHeight(questionCell.frame));
-}
+// Book makes a note that testing views can be difficult, but that this is one way to do it. However, Auto Layout
+// makes it so that this doesn't test what we think it does because the cell that's returned comes straight from the
+// nib file without going through auto layout processing.
+//- (void)testHeightForRowWhenCellHasAQuestionReturnsValueGreaterThanOrEqualToCellHeight
+//{
+//    dataSource = [self createDataSource];
+//    Topic *topic = [self createTopic];
+//    dataSource.topic = topic;
+//    Question *question = [[Question alloc] init];
+//    question.title = @"Test question title";
+//    question.score = 42;
+//    question.asker = [[Person alloc] initWithName:@"Richard Shin" avatarURL:nil];
+//    [topic addQuestion:question];
+//    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
+//    QuestionSummaryCell *questionCell = (QuestionSummaryCell *)[dataSource tableView:nil cellForRowAtIndexPath:ip];
+//    
+//    CGFloat heightForRow = [dataSource tableView:nil heightForRowAtIndexPath:ip];
+//    
+//    XCTAssertTrue(heightForRow >= CGRectGetHeight(questionCell.frame));
+//}
 
 #pragma mark - AvatarStore interaction tests
 

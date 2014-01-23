@@ -154,6 +154,24 @@
     XCTAssertEqualObjects(questionCell.scoreLabel.text, @"42");
 }
 
+- (void)testHeightForRowWhenCellHasAQuestionReturnsValueGreaterThanOrEqualToCellHeight
+{
+    dataSource = [self createDataSource];
+    Topic *topic = [self createTopic];
+    dataSource.topic = topic;
+    Question *question = [[Question alloc] init];
+    question.title = @"Test question title";
+    question.score = 42;
+    question.asker = [[Person alloc] initWithName:@"Richard Shin" avatarURL:nil];
+    [topic addQuestion:question];
+    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
+    QuestionSummaryCell *questionCell = (QuestionSummaryCell *)[dataSource tableView:nil cellForRowAtIndexPath:ip];
+    
+    NSInteger heightForRow = [dataSource tableView:nil heightForRowAtIndexPath:ip];
+    
+    XCTAssertTrue(heightForRow >= CGRectGetHeight(questionCell.frame));
+}
+
 #pragma mark - AvatarStore interaction tests
 
 // Scenario: QuestionListDataSource returns a cell for a question where the AvatarStore already has an avatar

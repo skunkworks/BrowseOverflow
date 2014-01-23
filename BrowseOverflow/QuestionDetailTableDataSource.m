@@ -56,7 +56,7 @@
     answerCell.textLabel.text = a.text;
     answerCell.answererNameLabel.text = a.answerer.name;
     answerCell.scoreLabel.text = [NSString stringWithFormat:@"%d", a.score];
-    answerCell.acceptedLabel.text = @"✓";
+    answerCell.acceptedLabel.text = a.accepted ? @"✓" : @"";
     answerCell.avatarView.image = nil;
     [self loadAvatarView:answerCell.avatarView withImageFromLocation:[a.answerer.avatarURL absoluteString]];
     

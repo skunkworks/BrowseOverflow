@@ -154,6 +154,8 @@
     XCTAssertEqualObjects(questionCell.scoreLabel.text, @"42");
 }
 
+#pragma mark - UITableViewDelegate
+
 - (void)testHeightForRowWhenCellHasAQuestionReturnsValueGreaterThanOrEqualToCellHeight
 {
     dataSource = [self createDataSource];
@@ -167,7 +169,7 @@
     NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];
     QuestionSummaryCell *questionCell = (QuestionSummaryCell *)[dataSource tableView:nil cellForRowAtIndexPath:ip];
     
-    NSInteger heightForRow = [dataSource tableView:nil heightForRowAtIndexPath:ip];
+    CGFloat heightForRow = [dataSource tableView:nil heightForRowAtIndexPath:ip];
     
     XCTAssertTrue(heightForRow >= CGRectGetHeight(questionCell.frame));
 }

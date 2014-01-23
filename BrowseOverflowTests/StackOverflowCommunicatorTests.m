@@ -91,7 +91,7 @@
     [communicator fetchBodyForQuestionWithID:12345];
     
     NSString *fetchingURLString = [[communicator fetchingURL] absoluteString];
-    NSString *expectedURLString = @"http://api.stackexchange.com/2.1/questions/12345?pagesize=20&order=desc&sort=activity&site=stackoverflow&filter=!)5E5Eqicc32_BFI72Q8kQtp9Mbg9";
+    NSString *expectedURLString = @"http://api.stackexchange.com/2.1/questions/12345?site=stackoverflow&filter=!9f*CwKRWa";
     XCTAssertEqualObjects(fetchingURLString, expectedURLString);
 }
 
